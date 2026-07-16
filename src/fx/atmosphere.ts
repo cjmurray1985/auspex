@@ -128,9 +128,11 @@ class AtmosphereFX {
         life: maxLife,
         maxLife,
         size: rand(1.2, 3.6),
-        r: gold ? 255 : 150,
-        g: gold ? (rand(170, 215) | 0) : 190,
-        b: gold ? (rand(70, 130) | 0) : 255,
+        // Brand sparks: gold (#f0cd8a) for milestones, foresight-blue (#6cc6ff)
+        // for general delight — matches docs/BRAND.md role discipline.
+        r: gold ? 240 : 108,
+        g: gold ? (rand(190, 215) | 0) : 198,
+        b: gold ? (rand(120, 150) | 0) : 255,
       });
     }
     this.startLoop();
