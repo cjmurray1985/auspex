@@ -48,6 +48,23 @@ const GUILD: Record<string, string> = {
 };
 const ALL_PAIRS = ['WU', 'UB', 'BR', 'RG', 'GW', 'WB', 'UR', 'BG', 'RW', 'GU'];
 
+/**
+ * Draft Rating curve (the progression invariant)
+ * ----------------------------------------------
+ * The rating is an exponentially-weighted moving average of each draft's
+ * decision-quality grade (`overall`, 0..100) scaled to a 0..2500 ladder:
+ *
+ *   ratingₙ = ALPHA · (overallₙ · SCALE) + (1 − ALPHA) · ratingₙ₋₁
+ *
+ * Design guarantees (see DA-121 guard tests in profile.test.ts):
+ *  - **Decision quality only.** `overall` is a pure decision-quality score;
+ *    `DraftRecord` carries no win/loss/outcome field, so the rating literally
+ *    cannot reward a "hot" deck or punish a "cold" one. A great-decision draft
+ *    that ran cold still raises the rating; a lucky, badly-drafted deck does not.
+ *  - **Recency-weighted.** ALPHA=0.3 lets recent improvement move the rating
+ *    while damping single-draft variance — progression tracks *getting better*,
+ *    not play frequency.
+ */
 const RATING_ALPHA = 0.3;
 const RATING_SCALE = 25; // overall 0..100 -> rating 0..2500
 
