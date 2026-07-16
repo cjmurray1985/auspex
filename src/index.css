@@ -45,6 +45,11 @@
   padding: 0;
 }
 
+html {
+  /* Larger, more readable base (PRE-31). rem-based sizing scales with this. */
+  font-size: 106.25%; /* 17px */
+}
+
 html,
 body,
 #root {
@@ -54,6 +59,7 @@ body,
 body {
   background: var(--bg-deep);
   color: var(--text);
+  line-height: 1.55;
   overflow-x: hidden;
 }
 
