@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useDraft } from '../../store';
 import { fx } from '../../fx/fx';
+import { rankAtRating } from '../../coach/profile';
 import { gradeColor } from '../Card3D';
 import { EquityChart, CommitmentChart } from './charts';
 import { ReplayPanel } from './ReplayPanel';
@@ -86,15 +87,25 @@ export function ReviewScreen() {
   const best = prior.length ? Math.max(...prior.map((h) => h.overall)) : null;
   const isPB = best !== null && review !== null && review.overall > best;
 
+  // A real rank-up: this draft pushed the rating across a rank threshold.
+  const hist = profile?.ratingHistory ?? [];
+  const rankedUp =
+    hist.length >= 2 &&
+    rankAtRating(hist[hist.length - 1]).min > rankAtRating(hist[hist.length - 2]).min;
+
   useEffect(() => {
     if (!review) return;
-    const t1 = setTimeout(() => fx.burst({ count: 220, gold: true }), 480);
-    const t2 = isPB ? setTimeout(() => fx.burst({ count: 300, gold: true }), 1700) : undefined;
-    return () => {
-      clearTimeout(t1);
-      if (t2) clearTimeout(t2);
-    };
-  }, [review, isPB]);
+    // Celebrations scale with the milestone (and are gated by reduced-motion in
+    // the fx layer). Rank-up is the biggest moment → a grand two-stage burst.
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    timers.push(setTimeout(() => fx.burst({ count: 220, gold: true }), 480));
+    if (isPB) timers.push(setTimeout(() => fx.burst({ count: 300, gold: true }), 1700));
+    if (rankedUp) {
+      timers.push(setTimeout(() => fx.burst({ count: 380, gold: true }), 1200));
+      timers.push(setTimeout(() => fx.burst({ count: 380, gold: true }), 2100));
+    }
+    return () => timers.forEach(clearTimeout);
+  }, [review, isPB, rankedUp]);
 
   if (!review) return null;
 

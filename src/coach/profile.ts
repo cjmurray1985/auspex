@@ -72,6 +72,13 @@ function mean(xs: number[]): number {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
 }
 
+/** The rank a given rating falls in. Exported so the UI can detect rank-ups. */
+export function rankAtRating(rating: number): CoachRank {
+  let rank = RANKS[0];
+  for (const r of RANKS) if (rating >= r.min) rank = r;
+  return rank;
+}
+
 function rankFor(rating: number): { rank: CoachRank; next?: CoachRank } {
   let rank = RANKS[0];
   let next: CoachRank | undefined;
