@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import type { CoachProfile, MasteryLevel } from '../../coach/types';
 import { RatingChart } from './charts';
+import { NudgeBanner } from './NudgeBanner';
 import { MeterBar, scoreColor } from './ui';
 
 const LEVEL_COLOR: Record<MasteryLevel, string> = {
@@ -42,6 +43,9 @@ export function ProgressDashboard({ profile }: { profile: CoachProfile }) {
 
   return (
     <div className="progress-dash">
+      {/* A single, dismissible, fact-grounded nudge (renders nothing if none) */}
+      <NudgeBanner profile={profile} />
+
       {/* Rating header */}
       <div className="rating-header">
         <div className="rating-badge" style={{ borderColor: profile.rank.color }}>
