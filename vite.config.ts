@@ -12,6 +12,9 @@ const seventeenLandsProxy = {
 }
 
 export default defineConfig({
+  // Served from a project subpath on GitHub Pages (cjmurray1985.github.io/preordain/);
+  // root '/' everywhere else (dev, preview, custom domains).
+  base: process.env.GITHUB_PAGES ? '/preordain/' : '/',
   plugins: [react()],
   server: { proxy: seventeenLandsProxy },
   preview: { proxy: seventeenLandsProxy },
