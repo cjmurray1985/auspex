@@ -2452,6 +2452,10 @@ select.db-input {
 }
 .nudge-dismiss:hover { opacity: 1; background: rgba(255, 255, 255, 0.08); }
 
+/* Source attribution (DA-133) */
+.legal-disclosure .attribution { margin-top: 0.35rem; opacity: 0.75; }
+.legal-disclosure .attribution a { color: inherit; text-decoration: underline; }
+
 /* Reduced-motion (DA-142): calm, complete experience. framer-motion is handled
    by <MotionConfig reducedMotion="user"> and canvas bursts are gated in JS;
    this disables the Ken Burns drift and near-instantly settles CSS animation. */

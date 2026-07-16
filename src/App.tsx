@@ -123,9 +123,20 @@ export default function App() {
       </AnimatePresence>
       <CardPreviewLayer />
       <footer className="legal-disclosure">
-        Wizards of the Coast, Magic: The Gathering, and their logos are trademarks of Wizards of
-        the Coast LLC. &copy; 2026 Wizards. All rights reserved. Draft Academy is unofficial Fan
-        Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.
+        <p>
+          Wizards of the Coast, Magic: The Gathering, and their logos are trademarks of Wizards of
+          the Coast LLC. &copy; 2026 Wizards. All rights reserved. Draft Academy is unofficial Fan
+          Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.
+        </p>
+        <p className="attribution">
+          Card data &amp; images from{' '}
+          <a href="https://scryfall.com" target="_blank" rel="noreferrer noopener">Scryfall</a>; draft
+          win-rate data from{' '}
+          <a href="https://www.17lands.com" target="_blank" rel="noreferrer noopener">17Lands</a>;
+          background art from{' '}
+          <a href="https://www.mtgpics.com" target="_blank" rel="noreferrer noopener">mtgpics</a>.
+          Not affiliated with any of these.
+        </p>
       </footer>
     </MotionConfig>
   );
