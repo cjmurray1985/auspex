@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useDraft } from './store';
 import { MenuScreen, LoadingScreen } from './components/MenuScreen';
 import { DraftScreen } from './components/DraftScreen';
@@ -105,7 +105,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <MotionConfig reducedMotion="user">
       <Suspense fallback={null}>
         <AtmosphereCanvas />
       </Suspense>
@@ -127,6 +127,6 @@ export default function App() {
         the Coast LLC. &copy; 2026 Wizards. All rights reserved. Draft Academy is unofficial Fan
         Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.
       </footer>
-    </>
+    </MotionConfig>
   );
 }

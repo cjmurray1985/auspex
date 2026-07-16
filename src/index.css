@@ -2452,3 +2452,24 @@ select.db-input {
 }
 .nudge-dismiss:hover { opacity: 1; background: rgba(255, 255, 255, 0.08); }
 
+/* Reduced-motion (DA-142): calm, complete experience. framer-motion is handled
+   by <MotionConfig reducedMotion="user"> and canvas bursts are gated in JS;
+   this disables the Ken Burns drift and near-instantly settles CSS animation. */
+@media (prefers-reduced-motion: reduce) {
+  .kenburns {
+    animation: none !important;
+    transform: none !important;
+  }
+  .fx-canvas {
+    display: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
