@@ -1,18 +1,24 @@
 import type { CategoryKey, DraftRecord, DraftReview, HabitFlag, PickTier } from './types';
 import { canonicalPair } from './context';
+import { getRecordStore } from './storage';
 
 /**
  * Persistence layer
  * =================
  * Stores a compact, decision-quality record of every completed draft so the app
  * can coach the individual over time. Kept deliberately small (no card blobs) so
- * a long history fits comfortably in localStorage. The profile engine reads
- * these records; nothing here computes coaching — it only remembers.
+ * a long history fits comfortably in storage. The profile engine reads these
+ * records; nothing here computes coaching — it only remembers.
+ *
+ * Where records physically live is behind the `RecordStore` seam (see
+ * `storage.ts`); this module only maps a review → record and reads/writes
+ * through the active store. That keeps the door open for a remote-sync backend
+ * without touching this file, the engines, or the UI.
  */
 
-const KEY = 'mtgdraft:records:v1';
-const LEGACY_KEY = 'mtgdraft:history';
-const MAX_RECORDS = 200;
+// Re-exported so callers can register an alternative store from one place.
+export { getRecordStore, setRecordStore, LocalStorageRecordStore } from './storage';
+export type { RecordStore } from './storage';
 
 function catScore(review: DraftReview, key: CategoryKey): number {
   return review.categories.find((c) => c.key === key)?.score ?? 0;
@@ -81,52 +87,11 @@ export function recordFromReview(review: DraftReview, set: string): DraftRecord 
 }
 
 export function loadRecords(): DraftRecord[] {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw) as DraftRecord[];
-  } catch {
-    /* corrupt — fall through */
-  }
-  // Best-effort migration from the old lightweight history.
-  try {
-    const legacy = localStorage.getItem(LEGACY_KEY);
-    if (legacy) {
-      const old = JSON.parse(legacy) as Array<{
-        date: string;
-        set: string;
-        overall: number;
-        letter: string;
-        archetype: string;
-      }>;
-      return old.map((h, i) => ({
-        id: `legacy-${i}`,
-        date: h.date,
-        set: h.set,
-        overall: h.overall,
-        letter: h.letter,
-        confidence: 'medium',
-        archetype: h.archetype,
-        colors: '',
-        categories: {} as Record<CategoryKey, number>,
-        tierCounts: { best: 0, strong: 0, acceptable: 0, weak: 0, mistake: 0 },
-        momentKinds: [],
-        flags: [],
-        bestRecovery: 0,
-      }));
-    }
-  } catch {
-    /* ignore */
-  }
-  return [];
+  return getRecordStore().load();
 }
 
 export function saveRecords(records: DraftRecord[]): void {
-  try {
-    const trimmed = records.slice(-MAX_RECORDS);
-    localStorage.setItem(KEY, JSON.stringify(trimmed));
-  } catch {
-    /* quota — non-fatal */
-  }
+  getRecordStore().save(records);
 }
 
 export function appendRecord(record: DraftRecord): DraftRecord[] {
