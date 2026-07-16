@@ -61,6 +61,53 @@ export interface LLMExplainerOptions {
   fallback?: Explainer;
 }
 
+/**
+ * Keys that would hand a model re-evaluable card data. The narration layer must
+ * never receive these — only identifiers (names) and already-computed facts.
+ */
+const CARD_DATA_KEYS = new Set([
+  'oracleText',
+  'imageNormal',
+  'imageLarge',
+  'artCrop',
+  'backImage',
+  'tokenImages',
+  'manaCost',
+  'colorIdentity',
+  'keywords',
+  'creatureTypes',
+  'producedMana',
+  'rating',
+  'evaluation',
+  'cardPool',
+  'pool',
+  'cards',
+]);
+
+function looksLikeCard(o: Record<string, unknown>): boolean {
+  return 'oracleText' in o || 'rating' in o || ('manaCost' in o && 'name' in o);
+}
+
+/**
+ * Deep-strip any re-evaluable card data from a narration payload (DA-112). A
+ * card object collapses to just its `name` — an identifier already present in
+ * the deterministic baseline — so the model can phrase, never re-decide.
+ */
+export function sanitizeFacts(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sanitizeFacts);
+  if (value && typeof value === 'object') {
+    const o = value as Record<string, unknown>;
+    if (looksLikeCard(o)) return typeof o.name === 'string' ? { name: o.name } : {};
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(o)) {
+      if (CARD_DATA_KEYS.has(k)) continue;
+      out[k] = sanitizeFacts(v);
+    }
+    return out;
+  }
+  return value;
+}
+
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const t = setTimeout(() => reject(new Error('llm-timeout')), ms);
@@ -107,7 +154,8 @@ export class LLMExplainer implements Explainer {
     if (this.cache.has(key) || this.inflight.has(key)) return;
     this.inflight.add(key);
     try {
-      const text = await withTimeout(this.client.complete({ kind, baseline, facts }), this.timeoutMs);
+      const safe = sanitizeFacts(facts); // never hand the model re-evaluable card data
+      const text = await withTimeout(this.client.complete({ kind, baseline, facts: safe }), this.timeoutMs);
       if (text && text.trim()) this.cache.set(key, text.trim());
     } catch {
       /* keep the deterministic baseline — never throw into the UI */
