@@ -7,6 +7,7 @@ import { gradeColor } from '../Card3D';
 import { EquityChart, CommitmentChart } from './charts';
 import { ReplayPanel } from './ReplayPanel';
 import { ProgressDashboard } from './ProgressDashboard';
+import { GuidedReview } from './GuidedReview';
 import {
   BranchPanel,
   CategoriesPanel,
@@ -82,6 +83,9 @@ export function ReviewScreen() {
   const counted = useCountUp(review?.overall ?? 0);
   const [tab, setTab] = useState<Tab>('overview');
   const [replayFocus, setReplayFocus] = useState<number | null>(null);
+  // Start every review with the paced, guided walkthrough (PRE-34); the full
+  // tabbed review is one click away and stays fully available.
+  const [guided, setGuided] = useState(true);
 
   const prior = records.slice(0, -1);
   const best = prior.length ? Math.max(...prior.map((h) => h.overall)) : null;
@@ -110,6 +114,7 @@ export function ReviewScreen() {
   if (!review) return null;
 
   const jump = (decisionIndex: number) => {
+    setGuided(false); // leaving the walkthrough to inspect a specific pick
     setReplayFocus(null);
     requestAnimationFrame(() => {
       setTab('replay');
@@ -167,6 +172,12 @@ export function ReviewScreen() {
         </div>
       </div>
 
+      {guided && (
+        <GuidedReview review={review} profile={profile} onJump={jump} onExit={() => setGuided(false)} />
+      )}
+
+      {!guided && (
+      <>
       {/* ---------- Tabs ---------- */}
       <div className="review-tabs">
         {TABS.map((t) => (
@@ -275,6 +286,8 @@ export function ReviewScreen() {
           </div>
         )}
       </div>
+      </>
+      )}
 
       <div className="review-actions">
         <button className="btn-primary" onClick={startDraft}>
