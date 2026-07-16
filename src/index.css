@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
+  /* ---- Design tokens (canonical scale; prefer these over ad-hoc values) ---- */
+  /* Color */
   --bg-deep: #0a0c14;
   --bg-panel: #131624;
   --bg-panel-2: #1a1f33;
@@ -11,7 +13,24 @@
   --accent: #5a7bd8;
   --danger: #d85a5a;
   --success: #6ad88a;
+  --border: rgba(255, 255, 255, 0.08);
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  /* Type scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.6rem;
+  --text-2xl: 2.2rem;
+  /* Radius */
   --radius: 12px;
+  --radius-sm: 8px;
   /* Native MTG typography: Beleren for display/card names, MPlantin (the
      printed card body font) for prose, Inter as a legibility fallback. */
   --font-title: 'Beleren Bold', 'Cinzel', serif;
@@ -2426,34 +2445,34 @@ select.db-input {
 .nudge-banner {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.7rem 0.9rem;
-  margin-bottom: 1.1rem;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
   border: 1px solid rgba(138, 182, 255, 0.35);
-  border-left: 3px solid #8ab6ff;
-  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
   background: rgba(138, 182, 255, 0.08);
 }
 .nudge-body { flex: 1; }
-.nudge-title { font-weight: 600; margin-bottom: 0.15rem; }
-.nudge-action { font-size: 0.9rem; opacity: 0.85; }
+.nudge-title { font-weight: 600; margin-bottom: var(--space-1); }
+.nudge-action { font-size: var(--text-sm); opacity: 0.85; }
 .nudge-dismiss {
   flex: none;
   width: 1.6rem;
   height: 1.6rem;
   line-height: 1;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
-  font-size: 1.2rem;
+  font-size: var(--text-lg);
   cursor: pointer;
   opacity: 0.6;
 }
 .nudge-dismiss:hover { opacity: 1; background: rgba(255, 255, 255, 0.08); }
 
 /* Source attribution (DA-133) */
-.legal-disclosure .attribution { margin-top: 0.35rem; opacity: 0.75; }
+.legal-disclosure .attribution { margin-top: var(--space-1); opacity: 0.75; }
 .legal-disclosure .attribution a { color: inherit; text-decoration: underline; }
 
 /* Reduced-motion (DA-142): calm, complete experience. framer-motion is handled
