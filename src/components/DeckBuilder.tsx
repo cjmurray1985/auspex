@@ -8,6 +8,17 @@ import type { RatedCard } from '../types';
 
 const COLOR_FILTERS = ['W', 'U', 'B', 'R', 'G', 'C'] as const;
 const BASIC_COLORS = ['W', 'U', 'B', 'R', 'G'] as const;
+
+// Accessible names so color controls never rely on color alone: mana glyphs
+// carry the shape, these carry the screen-reader/label text.
+const COLOR_NAMES: Record<string, string> = {
+  W: 'White',
+  U: 'Blue',
+  B: 'Black',
+  R: 'Red',
+  G: 'Green',
+  C: 'Colorless',
+};
 const CARD_TYPES = [
   'Creature',
   'Instant',
@@ -416,6 +427,9 @@ export function DeckBuilder() {
                 key={c}
                 className={`db-pip${colors.has(c) ? ' active' : ''}`}
                 onClick={() => toggleColor(c)}
+                aria-label={`Filter by ${COLOR_NAMES[c]}`}
+                aria-pressed={colors.has(c)}
+                title={COLOR_NAMES[c]}
               >
                 <i className={`ms ms-${c.toLowerCase()} ms-cost`} aria-hidden />
               </button>
@@ -426,6 +440,8 @@ export function DeckBuilder() {
             <button
               className={`db-pip db-land-toggle${landMenuOpen ? ' active' : ''}`}
               onClick={() => setLandMenuOpen((v) => !v)}
+              aria-label="Add basic lands"
+              aria-expanded={landMenuOpen}
             >
               <i className="ms ms-land" aria-hidden />
             </button>
@@ -440,6 +456,8 @@ export function DeckBuilder() {
                         key={c}
                         className="db-land-add"
                         onClick={() => setBasics(c, basics[c] + 1)}
+                        aria-label={`Add one ${COLOR_NAMES[c]} land`}
+                        title={`Add ${COLOR_NAMES[c]}`}
                       >
                         <i className={`ms ms-${c.toLowerCase()} ms-cost`} aria-hidden />
                       </button>
