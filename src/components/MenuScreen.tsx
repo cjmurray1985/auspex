@@ -40,7 +40,7 @@ export function MenuScreen() {
         transition={{ duration: 0.9, ease: 'easeOut' }}
         style={{ fontSize: '3.4rem', letterSpacing: '0.14em', textAlign: 'center' }}
       >
-        DRAFT ACADEMY
+        PREORDAIN
       </motion.h1>
       <motion.p
         initial={{ opacity: 0 }}
