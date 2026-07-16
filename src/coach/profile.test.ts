@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { CategoryKey, DraftRecord, HabitFlag, PickTier } from './types';
-import { computeProfile, FLAG_DIM } from './profile';
+import { computeProfile, FLAG_DIM, rankAtRating } from './profile';
 
 function cats(v: number): Record<CategoryKey, number> {
   return {
@@ -83,6 +83,23 @@ describe('improvement over outcome (DA-121)', () => {
     const a = [rec(70, { colors: 'WU', archetype: 'Fliers', archetypeWinRate: 0.61, bestRecovery: 40, tierCounts: { best: 9, strong: 3, acceptable: 1, weak: 0, mistake: 0 } as Record<PickTier, number> })];
     const b = [rec(70, { colors: 'BR', archetype: 'Sacrifice', archetypeWinRate: 0.39, bestRecovery: 0, tierCounts: { best: 0, strong: 1, acceptable: 4, weak: 6, mistake: 3 } as Record<PickTier, number> })];
     expect(computeProfile(a).rating).toBe(computeProfile(b).rating);
+  });
+});
+
+describe('rankAtRating (DA-141)', () => {
+  it('maps ratings to the right rank thresholds', () => {
+    expect(rankAtRating(0).name).toBe('Novice');
+    expect(rankAtRating(999).name).toBe('Novice');
+    expect(rankAtRating(1000).name).toBe('Apprentice');
+    expect(rankAtRating(2300).name).toBe('Master Drafter');
+    expect(rankAtRating(9999).name).toBe('Master Drafter');
+  });
+
+  it('detects a rank-up as a threshold crossing', () => {
+    // 975 -> 1050 crosses the Apprentice threshold (1000): a real rank-up.
+    expect(rankAtRating(1050).min).toBeGreaterThan(rankAtRating(975).min);
+    // 1050 -> 1100 stays in the same rank: not a rank-up.
+    expect(rankAtRating(1100).min).toBe(rankAtRating(1050).min);
   });
 });
 
