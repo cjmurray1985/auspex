@@ -102,7 +102,9 @@ export function ReviewScreen() {
     // Celebrations scale with the milestone (and are gated by reduced-motion in
     // the fx layer). Rank-up is the biggest moment → a grand two-stage burst.
     const timers: ReturnType<typeof setTimeout>[] = [];
-    timers.push(setTimeout(() => fx.burst({ count: 220, gold: true }), 480));
+    // Grade reveal = general delight → foresight-blue. Gold is milestone-only
+    // (personal best, rank-up) per the brand guide.
+    timers.push(setTimeout(() => fx.burst({ count: 220, gold: false }), 480));
     if (isPB) timers.push(setTimeout(() => fx.burst({ count: 300, gold: true }), 1700));
     if (rankedUp) {
       timers.push(setTimeout(() => fx.burst({ count: 380, gold: true }), 1200));
