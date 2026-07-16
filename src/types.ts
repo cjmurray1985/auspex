@@ -32,6 +32,8 @@ export interface DraftCard {
 export interface CardRating {
   /** Games-in-hand win rate from 17lands, if the card met the sample floor */
   gihwr?: number;
+  /** Games-in-hand sample count backing `gihwr` (data-maturity signal) */
+  gihSamples?: number;
   /** Improvement when drawn */
   iwd?: number;
   /** Average last seen at (pick position signal) */

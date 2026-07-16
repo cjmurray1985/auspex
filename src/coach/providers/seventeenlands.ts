@@ -4,6 +4,15 @@ import { computeSetStats, type EvalProvider, type SetStats } from './types';
 
 const zToScore = (z: number) => Math.max(0, Math.min(10, 5 + z * 1.9));
 
+// Data-maturity band for win-rate confidence. A card that just cleared 17lands'
+// 500-game floor has a much noisier win rate than one with thousands of games
+// (typical early in a set's life). We ramp confidence with sample count so thin,
+// early-set data speaks more tentatively — which flows through the consensus
+// into decision.ts's contested / not-penalized logic.
+const GIH_FLOOR = 500;
+const GIH_SETTLED = 2000;
+const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+
 /**
  * Games-in-hand win rate — the community-standard measure of raw card quality.
  * Only speaks for cards that cleared 17lands' sample floor, and speaks with high
@@ -23,12 +32,17 @@ export class WinRateProvider implements EvalProvider {
       return { source: 'winrate', label: '17lands win rate', value: null, confidence: 0, note: 'Below sample floor' };
     }
     const z = (gih - this.stats.gihMean) / this.stats.gihSd;
+    // Ramp confidence 0.55 (just cleared the floor) → 0.9 (settled sample).
+    const samples = card.rating.gihSamples ?? GIH_FLOOR;
+    const maturity = clamp01((samples - GIH_FLOOR) / (GIH_SETTLED - GIH_FLOOR));
+    const confidence = 0.55 + 0.35 * maturity;
+    const thin = maturity < 1 ? ` · ${samples.toLocaleString()} games (early-set)` : '';
     return {
       source: 'winrate',
       label: '17lands win rate',
       value: zToScore(z),
-      confidence: 0.9,
-      note: `${(gih * 100).toFixed(1)}% games-in-hand win rate`,
+      confidence,
+      note: `${(gih * 100).toFixed(1)}% games-in-hand win rate${thin}`,
     };
   }
 }
