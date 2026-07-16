@@ -1,12 +1,13 @@
 import { create } from 'zustand';
+import { ACTIVE_SET } from './set';
 
 /**
  * Full-bleed background art, scraped from mtgpics.com's illustration index for
- * Marvel Super Heroes (mtgpics set 493 / code "msh"). These are keyed by
- * mtgpics' own art number — NOT the card collector number — so the pool
- * includes tokens, basics, alternate arts and other pieces that don't map 1:1
- * to a draftable card. Only pieces at least 1024px wide are kept; the halftone
- * overlay (see index.css) sharpens the smaller ones on hi-dpi screens.
+ * the active set (see `ACTIVE_SET` in `set.ts`). These are keyed by mtgpics'
+ * own art number — NOT the card collector number — so the pool includes tokens,
+ * basics, alternate arts and other pieces that don't map 1:1 to a draftable
+ * card. Only pieces at least 1024px wide are kept; the halftone overlay (see
+ * index.css) sharpens the smaller ones on hi-dpi screens.
  */
 export interface ArtItem {
   /** mtgpics art number (path segment), zero-padded as stored on the CDN. */
@@ -19,12 +20,12 @@ export interface ArtItem {
 
 /** Hi-res illustration URL for an art number. */
 export function artUrl(num: string): string {
-  return `https://www.mtgpics.com/pics/art/msh/${num}.jpg`;
+  return `https://www.mtgpics.com/pics/art/${ACTIVE_SET.mtgpicsCode}/${num}.jpg`;
 }
 
 /** Smaller thumbnail (used by the curation gallery grid). */
 export function artThumbUrl(num: string): string {
-  return `https://www.mtgpics.com/pics/art_th_big/msh/${num}.jpg`;
+  return `https://www.mtgpics.com/pics/art_th_big/${ACTIVE_SET.mtgpicsCode}/${num}.jpg`;
 }
 
 // Scraped 2026-07 from https://www.mtgpics.com/art?set=493&size=3 (all pages),
