@@ -1,13 +1,26 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDraft } from './store';
 import { MenuScreen, LoadingScreen } from './components/MenuScreen';
 import { DraftScreen } from './components/DraftScreen';
 import { DeckBuilder } from './components/DeckBuilder';
-import { ReviewScreen, GradingInterstitial } from './components/review/ReviewScreen';
-import { AtmosphereCanvas } from './components/AtmosphereCanvas';
 import { CardPreviewLayer } from './components/CardPreview';
-import { BgGallery } from './components/BgGallery';
+
+// Heavy, end-of-flow / background views are code-split so they stay out of the
+// initial shell. The review UI (charts + panels) is only needed after a draft,
+// the atmosphere layer is decorative, and the art gallery is a dev-only tool.
+const ReviewScreen = lazy(() =>
+  import('./components/review/ReviewScreen').then((m) => ({ default: m.ReviewScreen })),
+);
+const GradingInterstitial = lazy(() =>
+  import('./components/review/ReviewScreen').then((m) => ({ default: m.GradingInterstitial })),
+);
+const AtmosphereCanvas = lazy(() =>
+  import('./components/AtmosphereCanvas').then((m) => ({ default: m.AtmosphereCanvas })),
+);
+const BgGallery = lazy(() =>
+  import('./components/BgGallery').then((m) => ({ default: m.BgGallery })),
+);
 
 type Phase = 'loading' | 'draft' | 'build' | 'grading' | 'grade' | 'menu';
 
@@ -83,11 +96,19 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  if (hash === '#bg-gallery') return <BgGallery />;
+  if (hash === '#bg-gallery') {
+    return (
+      <Suspense fallback={<LoadingScreen />}>
+        <BgGallery />
+      </Suspense>
+    );
+  }
 
   return (
     <>
-      <AtmosphereCanvas />
+      <Suspense fallback={null}>
+        <AtmosphereCanvas />
+      </Suspense>
       <AnimatePresence mode="wait">
         <motion.div
           key={phase}
@@ -97,7 +118,7 @@ export default function App() {
           exit={{ opacity: 0, scale: 1.01 }}
           transition={{ duration: 0.32, ease: 'easeOut' }}
         >
-          {screenFor(phase as Phase)}
+          <Suspense fallback={<LoadingScreen />}>{screenFor(phase as Phase)}</Suspense>
         </motion.div>
       </AnimatePresence>
       <CardPreviewLayer />
