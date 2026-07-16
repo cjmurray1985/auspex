@@ -1,19 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* ---- Design tokens (canonical scale; prefer these over ad-hoc values) ---- */
-  /* Color */
-  --bg-deep: #0a0c14;
-  --bg-panel: #131624;
-  --bg-panel-2: #1a1f33;
+  /* ---- Preordain brand tokens — "Foreseen / The Pool of Knowledge" (see docs/BRAND.md) ---- */
+  /* Canvas & surfaces (obsidian scrying chamber) */
+  --bg-deep: #0a0e1a; /* obsidian canvas */
+  --bg-panel: #131a2e; /* chamber walls / base panels */
+  --bg-panel-2: #1b2440; /* raised skeuomorphic panels */
+  --pk-edge: #2c3860; /* bevels / rune-etched borders */
+  /* Foresight blue — insight / focus / primary CTA only */
+  --accent: #4db2ff;
+  --foresight-glow: #6cc6ff;
+  --arcane-deep: #1e5fae;
+  /* Gold foil — rank / milestone / earned celebration ONLY */
   --gold: #d4af6a;
   --gold-bright: #f0cd8a;
-  --text: #e8e6e0;
-  --text-dim: #9a97a8;
-  --accent: #5a7bd8;
-  --danger: #d85a5a;
-  --success: #6ad88a;
-  --border: rgba(255, 255, 255, 0.08);
+  --text: #e8ecf5;
+  --text-dim: #98a2c0;
+  --danger: #e5716b;
+  --success: #5fd39a;
+  --border: rgba(108, 150, 220, 0.16);
   /* Spacing scale */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -31,10 +36,10 @@
   /* Radius */
   --radius: 12px;
   --radius-sm: 8px;
-  /* Native MTG typography: Beleren for display/card names, MPlantin (the
-     printed card body font) for prose, Inter as a legibility fallback. */
-  --font-title: 'Beleren Bold', 'Cinzel', serif;
-  --font-body: 'MPlantin', 'Inter', system-ui, sans-serif;
+  /* Preordain type: Cinzel (engraved display, our own chrome — NOT WOTC's
+     Beleren) for titles; clean Inter sans for body/data legibility. */
+  --font-title: 'Cinzel', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
   font-family: var(--font-body);
   color-scheme: dark;
 }
@@ -70,12 +75,12 @@ body {
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  /* Instant themed backdrop so there's never a blank frame before the card
-     art loads — a moody indigo glow with a warm floor. */
+  /* The Pool of Knowledge: an obsidian scrying chamber lit by a foresight-blue
+     glow rising from below like a pool. */
   background:
-    radial-gradient(ellipse 82% 60% at 50% 32%, rgba(64, 42, 96, 0.55), transparent 70%),
-    radial-gradient(ellipse 62% 45% at 50% 104%, rgba(96, 46, 40, 0.4), transparent 72%),
-    linear-gradient(180deg, #0e0b1a 0%, #0a0c14 100%);
+    radial-gradient(ellipse 80% 55% at 50% 30%, rgba(30, 95, 174, 0.3), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 110%, rgba(77, 178, 255, 0.22), transparent 72%),
+    linear-gradient(180deg, #0b1020 0%, #0a0e1a 100%);
 }
 
 .bg-layer {
@@ -215,22 +220,30 @@ h3,
 
 /* ---------- shared buttons ---------- */
 
+/* Primary CTA = foresight-blue forged gem (CTA is foresight; gold is milestone-only). */
 .btn-primary {
-  background: linear-gradient(180deg, var(--gold-bright), var(--gold) 60%, #a8854a);
-  color: #1a1206;
+  background: linear-gradient(180deg, var(--foresight-glow), var(--accent) 55%, var(--arcane-deep));
+  color: #041220;
   font-family: var(--font-title);
   font-weight: 700;
   font-size: 1.05rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 0.9rem 2.6rem;
+  border: 1px solid rgba(120, 200, 255, 0.5);
   border-radius: 8px;
-  box-shadow: 0 0 24px rgba(212, 175, 106, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 0 26px rgba(77, 178, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 6px rgba(4, 20, 40, 0.5);
   transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 4px 32px rgba(212, 175, 106, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 6px 34px rgba(77, 178, 255, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 6px rgba(4, 20, 40, 0.5);
   filter: brightness(1.08);
 }
 .btn-primary:disabled {
@@ -239,7 +252,7 @@ h3,
 }
 
 .btn-ghost {
-  border: 1px solid #3a4166;
+  border: 1px solid var(--pk-edge);
   color: var(--text-dim);
   padding: 0.6rem 1.4rem;
   border-radius: 8px;
@@ -247,8 +260,8 @@ h3,
   transition: all 0.15s ease;
 }
 .btn-ghost:hover {
-  border-color: var(--gold);
-  color: var(--gold-bright);
+  border-color: var(--accent);
+  color: var(--foresight-glow);
 }
 
 /* ---------- 3D card ---------- */
