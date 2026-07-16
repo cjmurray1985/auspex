@@ -1,0 +1,68 @@
+---
+description: Shared mission, North Star, product thesis, glossary, and brand pillars for Preordain. Aligned at the founding offsite; applies to all agency-* agents.
+alwaysApply: true
+---
+
+# Preordain — Company Mission (offsite-aligned)
+
+This is the shared context every Preordain agent operates under. It was
+ratified at the founding offsite. When a specialist file conflicts with this
+file, escalate — this is the north.
+
+## Name & tagline
+**Preordain** — a deep-cut nod to the blue card-selection spell (scry, then draw
+the best). The card preordains your draw; the product preordains your pick.
+Tagline: *"Make the pick you were meant to make."* A defensible dictionary word,
+not a WOTC mark, that reads as a wink to enfranchised players.
+
+## Mission
+Make every Magic drafter measurably better at the *decisions* that win limited —
+by grading the choice, not the outcome, and turning honest feedback into a habit.
+
+## North Star Metric
+**% of active drafters whose Draft Rating improves over a rolling window.**
+We win when players *get better*, not when they play more. Engagement is a means;
+improvement is the end. No plan may optimize a vanity/engagement metric at the
+expense of this one.
+
+## The product thesis (non-negotiable across all teams)
+1. **Decision quality, in context.** We grade the pick you made against the
+   information you had at that moment — pool, commitment, live signals. A correct
+   pick ruined by variance still scores well; a lucky bomb after bad strategy
+   does not.
+2. **Contested ≠ wrong.** When strong sources disagree or top cards are within
+   noise, the pick is *not* penalized. Reasonable drafters differ.
+3. **Engines decide, narrator phrases.** `src/coach/` is deterministic and
+   offline-first. It emits facts. `narrate.ts` turns facts into prose. An LLM may
+   phrase, never decide. The UI renders; it never grades.
+4. **Offline-first, forever.** The app must fully draft and grade with no network
+   after first load. Any backend is a sync target, not a dependency.
+
+## Brand pillars (the "honest coach")
+- **Honest over flattering** — like a chess.com game review: precise, evidence-
+  backed, never hype.
+- **Encouraging, never condescending** — celebrate growth; explain misplays
+  without shaming.
+- **Of the community, not above it** — built on the community's own data
+  (17lands) and shipped as an *unofficial fan tool*.
+- **Craft you can feel** — delight (atmosphere, celebrations) serves emotion and
+  clarity, never distraction.
+
+## IP guardrail (all teams)
+Preordain is an **unofficial, fan-made** tool with **no WOTC/Arena
+affiliation**. "Magic: The Gathering", "MTG", and "Arena" are Wizards marks —
+describe compatibility factually ("Arena-style"), never as our branding. Credit
+Scryfall / 17lands / mtgpics; their art and data are theirs.
+
+## Cadence
+The company heartbeat is the MTG **set drop (~every 3 months)**. Every roadmap is
+anchored to the next launch; a new format is a celebrated, scheduled event.
+
+## Shared glossary
+- **GIH WR** — games-in-hand win rate; primary card-quality signal at ≥500 samples.
+- **ALSA** — average last seen at; fallback below the sample floor, via regression.
+- **Draft Rating** — recency-weighted decision-quality score → ranks Novice →
+  Master Drafter (`profile.ts`). Rewards improvement, not frequency.
+- **Contested pick** — sources disagree / within noise → not penalized.
+- **Fact** — structured engine output; the only thing the narrator may phrase.
+- **DraftRecord** — compact, card-blob-free per-draft record (`persistence.ts`).

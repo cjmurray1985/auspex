@@ -1,4 +1,6 @@
-# Draft Academy — MTG Arena-style Draft Simulator
+# Preordain — MTG Arena-style Draft Simulator
+
+*Make the pick you were meant to make.*
 
 Practice drafting like it's MTG Arena, then get graded like a pro. Draft the
 current Arena limited format against seven bots, build your 40-card deck, and
