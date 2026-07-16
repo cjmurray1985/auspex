@@ -117,6 +117,7 @@ export function buildRatings(
       const z = (r.ever_drawn_win_rate - mean) / sd;
       rating = {
         gihwr: r.ever_drawn_win_rate,
+        gihSamples: r.ever_drawn_game_count,
         iwd: r.drawn_improvement_win_rate ?? undefined,
         alsa: r.avg_seen ?? undefined,
         score: zToScore(z),
