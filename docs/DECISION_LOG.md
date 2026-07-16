@@ -36,6 +36,9 @@ optimize a vanity/engagement metric at the expense of this one.
 | 2026-07-15 | One habit → one goal → at most one nudge (PRE-12/13) | Behavioral Nudge | No double-counting; ethical, fact-grounded, dismissible |
 | 2026-07-15 | Ship private, unofficial fan tool with full attribution (PRE-16) | Brand Guardian | Respect WOTC IP and the community's data sources |
 | 2026-07-15 | Personal Linear + personal GitHub only; no Yahoo-owned tooling | CEO | Keep the venture cleanly separate from employer systems |
+| 2026-07-15 | CI (lint+test+build) is the per-PR gate; added GitHub Actions | DevOps | Enforce quality automatically on every change (PRE-21) |
+| 2026-07-15 | Agent-first SDLC: HITL only at sprint planning + demo sign-off; sprints run autonomously; no per-PR human review | CEO / CoS | Human reasoning at key junctures; agents execute in between (PRE-22, see AGENT_FIRST_SDLC.md) |
+| 2026-07-15 | Branch protection deferred — GitHub Free blocks it on private repos; decision pending: make public or upgrade to Pro | CEO | Enforcement needs a plan/visibility change; agents self-enforce green-CI merges until then |
 
 ## Set-launch readiness checklist (run before each set drop)
 
