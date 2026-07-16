@@ -4,6 +4,7 @@ import { useDraft } from '../store';
 import { BASIC_LAND_NAMES } from '../data/scryfall';
 import { hoverProps, useHover } from './CardPreview';
 import { useDrag, type DropTarget } from './useDrag';
+import { DeckDetails } from './DeckDetails';
 import type { RatedCard } from '../types';
 
 const COLOR_FILTERS = ['W', 'U', 'B', 'R', 'G', 'C'] as const;
@@ -214,6 +215,7 @@ export function DeckBuilder() {
   // dragged into any column and pinned there. Keyed by instanceId → column key.
   const [colOverride, setColOverride] = useState<Record<string, number>>({});
   const [landMenuOpen, setLandMenuOpen] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const deckIds = useMemo(() => new Set(deck.map((c) => c.instanceId ?? c.id)), [deck]);
 
@@ -401,10 +403,14 @@ export function DeckBuilder() {
           {deckSize}
           <span className="db-count-max">/40</span>
         </span>
+        <button className="btn-ghost db-details-btn" onClick={() => setShowDetails(true)}>
+          Deck Details
+        </button>
         <button className="btn-primary" disabled={!canSubmit} onClick={submitDeck}>
           Done
         </button>
       </div>
+      <DeckDetails open={showDetails} onClose={() => setShowDetails(false)} />
 
       <div
         className={`db-pool${draggingFromDeck ? ' drag-return' : ''}${
@@ -574,7 +580,14 @@ export function DeckBuilder() {
           </svg>
         </button>
 
-        <div className="db-curve">
+        <div
+          className="db-curve"
+          onClick={(e) => {
+            // Clicking the curve background (not a card) opens Deck Details (PRE-37).
+            if (e.target === e.currentTarget) setShowDetails(true);
+          }}
+          title="Open Deck Details"
+        >
           {deckEmpty && <div className="db-empty">Add cards from your pool above.</div>}
 
           {/* Mana-curve columns — to the LEFT of Lands, keyed by mana value. */}
