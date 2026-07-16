@@ -188,7 +188,13 @@ function achievements(records: DraftRecord[], pairs: ColorPairStat[], bestStreak
   return defs.map((d) => ({ id: d.id, name: d.name, description: d.description, earned: d.earned, date: d.earned ? d.date : undefined }));
 }
 
-const FLAG_DIM: Record<HabitFlag, CategoryKey> = {
+/**
+ * Every HabitFlag maps to exactly one coaching dimension (compile-time total:
+ * `Record<HabitFlag, …>` forces all flags to be covered — no orphan habits).
+ * Weekly goals dedupe by *dimension*, so two habits on the same dimension never
+ * produce two overlapping goals (no double-counting).
+ */
+export const FLAG_DIM: Record<HabitFlag, CategoryKey> = {
   'early-commit': 'staying-open',
   'late-commit': 'archetype-commitment',
   'missed-signals': 'signal-reading',
@@ -203,10 +209,16 @@ const FLAG_DIM: Record<HabitFlag, CategoryKey> = {
 
 function goals(patterns: RecurringPattern[], dims: DimensionTrend[]): WeeklyGoal[] {
   const out: WeeklyGoal[] = [];
+  const usedDims = new Set<CategoryKey>();
   const dimBy = (k: CategoryKey) => dims.find((d) => d.key === k);
-  for (const p of patterns.slice(0, 2)) {
-    const dim = dimBy(FLAG_DIM[p.flag]);
-    const current = Math.round(dim?.current ?? 0);
+
+  // One goal per detected habit, deduped by the dimension it targets: two
+  // habits on the same dimension collapse to a single goal (no double-counting).
+  for (const p of patterns) {
+    const dimKey = FLAG_DIM[p.flag];
+    if (usedDims.has(dimKey)) continue;
+    usedDims.add(dimKey);
+    const current = Math.round(dimBy(dimKey)?.current ?? 0);
     out.push({
       id: `goal-${p.flag}`,
       title: p.title.replace(/^You /, 'Stop ').replace(/^Your /, 'Fix your '),
@@ -215,17 +227,23 @@ function goals(patterns: RecurringPattern[], dims: DimensionTrend[]): WeeklyGoal
       currentScore: current,
       met: current >= 72,
     });
+    if (out.length >= 2) break;
   }
+
+  // Fallback: if habits didn't fill two goals, add the weakest untargeted dim.
   if (out.length < 2 && dims.length) {
-    const weakest = [...dims].sort((a, b) => a.current - b.current)[0];
-    out.push({
-      id: `goal-${weakest.key}`,
-      title: `Raise your ${weakest.label}`,
-      detail: `Your weakest dimension right now. Target ${Math.min(85, Math.round(weakest.current) + 8)} next session.`,
-      targetScore: Math.min(85, Math.round(weakest.current) + 8),
-      currentScore: Math.round(weakest.current),
-      met: false,
-    });
+    const weakest = [...dims].filter((d) => !usedDims.has(d.key)).sort((a, b) => a.current - b.current)[0];
+    if (weakest) {
+      usedDims.add(weakest.key);
+      out.push({
+        id: `goal-${weakest.key}`,
+        title: `Raise your ${weakest.label}`,
+        detail: `Your weakest dimension right now. Target ${Math.min(85, Math.round(weakest.current) + 8)} next session.`,
+        targetScore: Math.min(85, Math.round(weakest.current) + 8),
+        currentScore: Math.round(weakest.current),
+        met: false,
+      });
+    }
   }
   return out.slice(0, 3);
 }
