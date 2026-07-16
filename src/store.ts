@@ -9,13 +9,14 @@ import type { CoachProfile, DraftRecord, DraftReview } from './coach/types';
 import { fetchSetCards, fetchBasicLandArt } from './data/scryfall';
 import { fetchCardRatings, fetchColorRatings } from './data/seventeenlands';
 import { buildRatings } from './data/ratings';
+import { ACTIVE_SET } from './data/set';
 import { generateAllPacks, NUM_PACKS, NUM_SEATS, PACK_SIZE } from './engine/pack';
 import { botPick, createBot, rollBotTable, type BotState, type Persona } from './engine/bot';
 import { buildReview } from './coach/review';
 import { appendRecord, loadRecords, recordFromReview } from './coach/persistence';
 import { computeProfile } from './coach/profile';
 
-const SET_CODE = 'MSH';
+const SET_CODE = ACTIVE_SET.code;
 
 interface DraftStore {
   phase: Phase;
