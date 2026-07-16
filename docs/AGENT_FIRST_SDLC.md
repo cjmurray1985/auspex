@@ -16,10 +16,25 @@ Nothing is executed until this sign-off. This is where human strategy shapes
 *what* gets built and *why*.
 
 ### Gate 2 — End-of-sprint demo & sign-off (after execution)
-Every sprint concludes with **demos of the functionality introduced**. Demos may
-run in a **staging/preview environment** or via whatever tooling best achieves
-sign-off (e.g. a Vercel/Netlify preview deploy, a recorded walkthrough, or a
-local run against the acceptance criteria). A human signs off to close the sprint.
+Every sprint concludes with a demo on the **live preview deploy**
+(https://cjmurray1985.github.io/preordain/) or best-fit tooling. A human signs off
+to close the sprint.
+
+**Pre-demo (agent):** run a **live validation pass** (Chrome DevTools MCP) before
+greenlighting — load the deploy, confirm no console errors, and smoke-test the
+sprint's functionality. Automated CI cannot catch rendered-text or visual
+regressions; the live pass can. Only greenlight once it is clean.
+
+**Demo framing — assume the reviewer already knows everything built previously
+(no re-teaching of prior work).** Tee up every demo as:
+1. **Last time** — a one-line recap of what was reviewed last sprint.
+2. **Today** — what this sprint delivers, oriented to *what to look for*.
+3. **Next** — where we're heading.
+
+**Feedback loop:** the demo invites **open-ended feedback**. The reviewer reacts
+and steers; the reviewer does **not** write tickets. The team **interprets** that
+feedback, converts it into tickets, and prioritizes them into the next sprint's
+Gate-1 plan. This is the primary input that shapes the next sprint.
 
 ## Autonomous execution (everything between the gates)
 
@@ -41,19 +56,14 @@ No per-PR human review is required. The **automated CI gate is the reviewer.**
 - **Not required:** human PR review (agent-first — reserved for the two gates above).
 - Merge only green PRs; never bypass a failing check.
 
-### Enforcement (server-side branch protection)
-Branch protection / rulesets are **not available on GitHub Free for private
-repositories** (the API returns 403 "Upgrade to GitHub Pro or make this
-repository public"). To make the merge policy server-enforced, choose one:
-- **Make the repo public** (branch protection is free on public repos), or
-- **Upgrade to GitHub Pro** (keeps the repo private).
-
-Recommended protection once enabled (encodes agent-first):
-- Require status check **`Lint · Test · Build`** to pass (strict / up-to-date).
-- **Do not** require pull-request reviews (autonomous merge).
+### Enforcement (server-side branch protection) — ✅ live
+The repo is **public**, so branch protection is enabled on `main` (agent-first):
+- Requires the **`Lint · Test · Build`** status check to pass (strict / up-to-date).
+- **No** pull-request reviews required (autonomous merge).
 - `enforce_admins: true`; no force-push; no branch deletion.
 
-Until then, agents **self-enforce** by only merging PRs whose CI is green.
+Note: branch protection/rulesets are not available on GitHub Free for *private*
+repos (would need GitHub Pro); going public unlocked it for free.
 
 ## Operating hygiene
 
