@@ -1,6 +1,23 @@
 import { describe, it, expect } from 'vitest';
-import type { CategoryKey, DraftRecord, PickTier } from './types';
-import { computeProfile } from './profile';
+import type { CategoryKey, DraftRecord, HabitFlag, PickTier } from './types';
+import { computeProfile, FLAG_DIM } from './profile';
+
+function cats(v: number): Record<CategoryKey, number> {
+  return {
+    'card-eval': v,
+    'staying-open': v,
+    'signal-reading': v,
+    'archetype-commitment': v,
+    'deck-cohesion': v,
+    'opportunity-cost': v,
+    'pick-efficiency': v,
+  };
+}
+
+function dimOf(goalId: string): string {
+  const key = goalId.replace(/^goal-/, '');
+  return (FLAG_DIM as Record<string, string>)[key] ?? key;
+}
 
 /**
  * DA-121 · Rating curve guard
@@ -66,5 +83,40 @@ describe('improvement over outcome (DA-121)', () => {
     const a = [rec(70, { colors: 'WU', archetype: 'Fliers', archetypeWinRate: 0.61, bestRecovery: 40, tierCounts: { best: 9, strong: 3, acceptable: 1, weak: 0, mistake: 0 } as Record<PickTier, number> })];
     const b = [rec(70, { colors: 'BR', archetype: 'Sacrifice', archetypeWinRate: 0.39, bestRecovery: 0, tierCounts: { best: 0, strong: 1, acceptable: 4, weak: 6, mistake: 3 } as Record<PickTier, number> })];
     expect(computeProfile(a).rating).toBe(computeProfile(b).rating);
+  });
+});
+
+describe('habit → weekly goal mapping (DA-122)', () => {
+  it('maps every HabitFlag to a dimension (no orphan habits)', () => {
+    const flags = Object.keys(FLAG_DIM) as HabitFlag[];
+    expect(flags).toHaveLength(10);
+    for (const flag of flags) expect(FLAG_DIM[flag]).toBeTruthy();
+  });
+
+  it('gives each goal a clear completion condition', () => {
+    const records = Array.from({ length: 4 }, () =>
+      rec(55, { flags: ['missed-signals'], categories: cats(50) }),
+    );
+    const { goals } = computeProfile(records);
+    expect(goals.length).toBeGreaterThan(0);
+    for (const g of goals) {
+      expect(typeof g.targetScore).toBe('number');
+      expect(typeof g.currentScore).toBe('number');
+      expect(g.met).toBe(g.currentScore >= g.targetScore);
+    }
+  });
+
+  it('does not double-count two habits that target the same dimension', () => {
+    // power-over-fit and card-eval-slips both target 'card-eval'.
+    const records = Array.from({ length: 4 }, () =>
+      rec(50, { flags: ['power-over-fit', 'card-eval-slips'], categories: cats(45) }),
+    );
+    const { goals } = computeProfile(records);
+    const ids = goals.map((g) => g.id);
+    expect(new Set(ids).size).toBe(ids.length); // ids unique
+
+    const dims = goals.map((g) => dimOf(g.id));
+    expect(new Set(dims).size).toBe(dims.length); // no dimension targeted twice
+    expect(dims.filter((d) => d === 'card-eval').length).toBeLessThanOrEqual(1);
   });
 });
