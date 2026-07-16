@@ -42,6 +42,14 @@ export function MenuScreen() {
       >
         PREORDAIN
       </motion.h1>
+      <motion.div
+        className="experience-lockup"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.15 }}
+      >
+        Draft Academy
+      </motion.div>
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

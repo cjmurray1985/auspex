@@ -2490,6 +2490,32 @@ select.db-input {
 }
 .nudge-dismiss:hover { opacity: 1; background: rgba(255, 255, 255, 0.08); }
 
+/* Platform-over-experience lockup (PRE-29): Preordain (platform) / Draft Academy (experience) */
+.experience-lockup {
+  margin-top: var(--space-2);
+  font-family: var(--font-title);
+  font-size: var(--text-sm);
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+.experience-lockup::before,
+.experience-lockup::after {
+  content: '';
+  width: 2.2rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 60%);
+  opacity: 0.6;
+}
+.experience-lockup::after {
+  transform: scaleX(-1);
+}
+
 /* Source attribution (DA-133) */
 .legal-disclosure .attribution { margin-top: var(--space-1); opacity: 0.75; }
 .legal-disclosure .attribution a { color: inherit; text-decoration: underline; }
