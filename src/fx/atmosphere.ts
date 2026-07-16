@@ -4,6 +4,8 @@
  * celebration flourishes.
  */
 
+import { prefersReducedMotion } from './reducedMotion';
+
 export type Mood = 'menu' | 'draft' | 'build' | 'grading' | 'grade';
 
 interface Particle {
@@ -109,6 +111,7 @@ class AtmosphereFX {
   /** One-shot spark fountain — grade reveals and mythic pulls. */
   burst(opts?: { count?: number; gold?: boolean }) {
     if (!this.started) return;
+    if (prefersReducedMotion()) return; // no celebratory motion for these users
     const count = opts?.count ?? 200;
     const gold = opts?.gold ?? true;
     const cx = this.w / 2;
