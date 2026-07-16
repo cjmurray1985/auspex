@@ -58,7 +58,7 @@ function reasonPhrases(facts: DecisionFacts): string[] {
   return out;
 }
 
-class TemplateExplainer implements Explainer {
+export class TemplateExplainer implements Explainer {
   decision(facts: DecisionFacts): string {
     const reasons = reasonPhrases(facts);
     const reasonClause = reasons.length ? ` ${reasons.join('; ')}.` : '';
