@@ -292,7 +292,7 @@ export function ReviewScreen() {
       )}
 
       <div className="review-actions">
-        <button className="btn-primary" onClick={startDraft}>
+        <button className="btn-primary" onClick={() => startDraft()}>
           Draft Again
         </button>
         <button className="btn-ghost" onClick={reset}>
