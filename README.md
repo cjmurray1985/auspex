@@ -1,4 +1,4 @@
-# Preordain — MTG Arena-style Draft Simulator
+# Auspex — MTG Arena-style Draft Simulator
 
 *Make the pick you were meant to make.*
 

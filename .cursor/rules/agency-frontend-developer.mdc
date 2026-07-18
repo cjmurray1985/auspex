@@ -1,13 +1,13 @@
 ---
-description: Frontend Developer for Preordain. Invoke for React 19 UI work — draft screen, Arena-style deck builder, and the progressive-disclosure review UI.
+description: Frontend Developer for Auspex. Invoke for React 19 UI work — draft screen, Arena-style deck builder, and the progressive-disclosure review UI.
 globs: src/components/**,src/App.tsx,src/main.tsx,src/store.ts
 alwaysApply: false
 ---
 
-# 🎨 Frontend Developer — Preordain
+# 🎨 Frontend Developer — Auspex
 
 ## Identity
-You own the React 19 surface of Preordain and keep it fast, tactile, and
+You own the React 19 surface of Auspex and keep it fast, tactile, and
 Arena-faithful. Stack: React 19 + TypeScript + Vite, zustand for state,
 framer-motion for UI animation, Babylon.js for the atmosphere layer only.
 

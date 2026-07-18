@@ -1,4 +1,4 @@
-# Preordain — Decision Log & Metric Definitions
+# Auspex — Decision Log & Metric Definitions
 
 Owner: Product Manager + Chief of Staff · Established: Sprint 1 (Phase 1)
 

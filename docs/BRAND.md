@@ -1,23 +1,28 @@
-# Preordain — Brand Guide
+# Auspex — Brand Guide
 
 **Direction: "Foreseen — The Pool of Knowledge"** (approved at Gate 2, Sprint 2).
 
-Preordain is the **platform**; *Draft Academy* is its first **experience**. This guide
+Auspex is the **platform**; *Draft Academy* is its first **experience**. This guide
 defines the identity all experiences share. It is the source of truth for the component
 reskin (PRE-32), whimsy (PRE-33), typography (PRE-31), and the app shell (PRE-29).
 
-## The seed
+## The name & the seed
+**Auspex** — in Roman practice, an *augur who reads omens to foresee.* It carries the
+foresight seed in the name itself, nods to MTG's divination lore (the scrying seer;
+cards like Augur of Bolas / Preordain) without being a WOTC mark, and travels across
+TCGs. Tagline: *"Make the pick you were meant to make."*
+
 One physical metaphor drives every surface (the Hearthstone "seed" principle): **the
-seer's scrying chamber — the Pool of Knowledge.** It ties the name → the *Preordain* card
-(`{U}` "Scry 2, then draw a card") → the product. The card's own flavor is our thesis:
+seer's scrying chamber — the Pool of Knowledge** (from Preordain's own flavor). Foresight
+is the through-line: name → foresight → product. The seed's thesis:
 
 > "Raw power wins battles, but those who choose the shape of the battlefield win the war."
-> — *The Pool of Knowledge*
+> — *The Pool of Knowledge* (MTG flavor)
 
 Choosing the shape of the battlefield = making the right pick = what the coach teaches.
 
 ## Identity
-- **Wordmark:** `PREORDAIN` in an engraved display face, with a **scrying-eye sigil** above.
+- **Wordmark:** `AUSPEX` in an engraved display face, with a **scrying-eye sigil** above.
 - **Experience lockup:** `DRAFT ACADEMY` set smaller beneath the platform wordmark.
 - **Motif:** the scrying eye / the glowing pool. Foresight is the through-line.
 - **Voice:** the honest seer-coach — precise, evidence-backed, encouraging, never hype.
@@ -41,7 +46,7 @@ Choosing the shape of the battlefield = making the right pick = what the coach t
 
 **Role discipline:** foresight-blue is reserved for insight/focus/CTA; **gold is milestone-only**
 (never general chrome — that keeps celebration "earned," per the balanced-whimsy choice).
-Blue is Preordain's mana color — on-brand and card-accurate.
+Blue is Auspex's mana color — on-brand and card-accurate.
 
 ## Typography
 - **Display (titles/headings ONLY):** an engraved, ornate-but-legible face — **Cinzel**
@@ -52,7 +57,7 @@ Blue is Preordain's mana color — on-brand and card-accurate.
 - **Readability (fixes Sprint-1 feedback):** raise the base to **17px** and use a
   coherent scale; generous line-height on prose; WCAG AA contrast on all text.
 
-> ⚠️ **IP:** Do **not** use **Beleren** (Wizards' typeface) for Preordain's own chrome —
+> ⚠️ **IP:** Do **not** use **Beleren** (Wizards' typeface) for Auspex's own chrome —
 > it's WOTC IP. Beleren/MTG assets belong only to *card content*, never our brand.
 
 ## Surfaces & skeuomorphism
@@ -77,8 +82,8 @@ Blue is Preordain's mana color — on-brand and card-accurate.
 ## Decision ledger
 | Decision | Source | Why |
 |---|---|---|
-| Scrying-pool "seed" | Preordain card + Pool of Knowledge flavor | Ties name → card → product |
-| Blue foresight accent | Preordain is `{U}` | On-brand, ownable |
+| Scrying-pool "seed" | MTG foresight lore (Preordain's "Pool of Knowledge" flavor) | Name (Auspex = augur) → foresight → product |
+| Blue foresight accent | Divination/scrying is blue in MTG | On-brand, ownable |
 | Skeuomorphic forged/rune frames | Hearthstone seed + fantasy card-UI kits | Exec: game-UI + skeuomorphism |
 | Ornate titles + clean body | Skyrim legibility guidance | Fantasy feel + readability |
 | Gold = milestone-only | reference role-discipline | "Earned" balanced whimsy |

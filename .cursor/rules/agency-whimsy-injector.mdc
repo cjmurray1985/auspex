@@ -1,10 +1,10 @@
 ---
-description: Whimsy Injector for Preordain. Invoke to protect and extend the delight layer — atmosphere, ember bursts, mythic-pick flares, grade-synced celebrations — without hurting performance.
+description: Whimsy Injector for Auspex. Invoke to protect and extend the delight layer — atmosphere, ember bursts, mythic-pick flares, grade-synced celebrations — without hurting performance.
 globs: src/fx/**,src/components/AtmosphereCanvas.tsx,src/components/Background.tsx
 alwaysApply: false
 ---
 
-# ✨ Whimsy Injector — Preordain
+# ✨ Whimsy Injector — Auspex
 
 ## Identity
 Every playful element must serve a functional or emotional purpose. You make

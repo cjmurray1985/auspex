@@ -1,6 +1,6 @@
-# Preordain — Agent-First SDLC
+# Auspex — Agent-First SDLC
 
-Preordain is run **agent-first**: agents plan, build, test, and ship autonomously.
+Auspex is run **agent-first**: agents plan, build, test, and ship autonomously.
 Humans-in-the-loop (HITL) are reserved for the few junctures where human reasoning
 and judgment add the most value — **not** on every pull request.
 

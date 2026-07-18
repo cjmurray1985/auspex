@@ -125,7 +125,7 @@ export default function App() {
       <footer className="legal-disclosure">
         <p>
           Wizards of the Coast, Magic: The Gathering, and their logos are trademarks of Wizards of
-          the Coast LLC. &copy; 2026 Wizards. All rights reserved. Preordain is unofficial Fan
+          the Coast LLC. &copy; 2026 Wizards. All rights reserved. Auspex is unofficial Fan
           Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.
         </p>
         <p className="attribution">
