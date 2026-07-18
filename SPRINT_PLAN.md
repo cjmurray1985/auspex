@@ -1,4 +1,4 @@
-# Preordain — Sprint 1 Plan (Phase 1)
+# Auspex — Sprint 1 Plan (Phase 1)
 
 **Owner:** CEO (ex-WOTC) · **Duration:** 2 weeks · **Team:** Phase 1 founding roster
 (see `.cursor/rules/agency-*.mdc`) · **Status:** presented post-offsite, ready to execute
@@ -12,7 +12,7 @@
 
 ## Sprint goal
 
-> Harden Preordain from a brilliant prototype into a polished, resilient,
+> Harden Auspex from a brilliant prototype into a polished, resilient,
 > set-launch-ready tool — **entirely within this client-only workspace.**
 
 No backend exists yet, so this sprint deliberately does **not** build accounts,

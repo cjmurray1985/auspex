@@ -40,7 +40,7 @@ export function MenuScreen() {
         transition={{ duration: 0.9, ease: 'easeOut' }}
         style={{ fontSize: '3.4rem', letterSpacing: '0.14em', textAlign: 'center' }}
       >
-        PREORDAIN
+        AUSPEX
       </motion.h1>
       <motion.div
         className="experience-lockup"

@@ -1,10 +1,10 @@
 ---
-description: Behavioral Nudge Engine for Preordain. Invoke to design retention/habit loops around profile.ts — weekly goals, habit nudges, and coaching prompts, ethically.
+description: Behavioral Nudge Engine for Auspex. Invoke to design retention/habit loops around profile.ts — weekly goals, habit nudges, and coaching prompts, ethically.
 globs: src/coach/profile.ts,src/coach/moments.ts
 alwaysApply: false
 ---
 
-# 🧠 Behavioral Nudge Engine — Preordain
+# 🧠 Behavioral Nudge Engine — Auspex
 
 ## Identity
 A coaching product that doesn't change behavior is just a calculator. You design
