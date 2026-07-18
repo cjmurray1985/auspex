@@ -9,14 +9,12 @@ import type { CoachProfile, DraftRecord, DraftReview } from './coach/types';
 import { fetchSetCards, fetchBasicLandArt } from './data/scryfall';
 import { fetchCardRatings, fetchColorRatings } from './data/seventeenlands';
 import { buildRatings } from './data/ratings';
-import { ACTIVE_SET } from './data/set';
+import { FEATURED_SET, getSet, type DraftableSet } from './data/sets';
 import { generateAllPacks, NUM_PACKS, NUM_SEATS, PACK_SIZE } from './engine/pack';
 import { botPick, createBot, rollBotTable, type BotState, type Persona } from './engine/bot';
 import { buildReview } from './coach/review';
 import { appendRecord, loadRecords, recordFromReview } from './coach/persistence';
 import { computeProfile } from './coach/profile';
-
-const SET_CODE = ACTIVE_SET.code;
 
 interface DraftStore {
   phase: Phase;
@@ -25,7 +23,11 @@ interface DraftStore {
   pausedPhase: Phase | null;
   loadingMessage: string;
   error?: string;
+  /** The set the player is drafting (or will draft). */
+  selectedSet: DraftableSet;
   setName: string;
+  /** Which set's data is currently loaded into `cardPool` (null before init). */
+  loadedSetCode: string | null;
   /** Guards against `init` running more than once (e.g. StrictMode double-mount). */
   initStarted: boolean;
 
@@ -55,7 +57,9 @@ interface DraftStore {
   profile: CoachProfile;
 
   init: () => Promise<void>;
-  startDraft: () => void;
+  /** Enter a draft. Pass a set code to draft that set; defaults to the
+   *  currently selected set. Re-fetches card data when the set changes. */
+  startDraft: (setCode?: string) => Promise<void>;
   /** Back out of an active draft to the menu, keeping the draft resumable. */
   pauseToMenu: () => void;
   /** Return to the paused draft/build phase. */
@@ -72,6 +76,17 @@ interface DraftStore {
 
 export const PICK_SECONDS = 50;
 
+/** Fetch + build the rated card pool for a set. Shared by init and startDraft. */
+async function loadSetData(code: string) {
+  const cards = await fetchSetCards(code);
+  const [ratings, colorRatings, basicLandArt] = await Promise.all([
+    fetchCardRatings(code),
+    fetchColorRatings(code),
+    fetchBasicLandArt(),
+  ]);
+  return { rated: buildRatings(cards, ratings), colorRatings, basicLandArt };
+}
+
 const initialRecords = loadRecords();
 
 export const useDraft = create<DraftStore>((set, get) => ({
@@ -80,7 +95,9 @@ export const useDraft = create<DraftStore>((set, get) => ({
   phase: 'loading',
   pausedPhase: null,
   loadingMessage: 'Summoning cards from Scryfall\u2026',
-  setName: 'Marvel Super Heroes',
+  selectedSet: FEATURED_SET,
+  setName: FEATURED_SET.name,
+  loadedSetCode: null,
   initStarted: false,
   cardPool: [],
   colorRatings: [],
@@ -105,25 +122,57 @@ export const useDraft = create<DraftStore>((set, get) => ({
     // Only ever run once — StrictMode (dev) mounts effects twice, which would
     // otherwise double-fetch and replay the loading animation.
     if (get().initStarted || get().cardPool.length) return;
+    const featured = FEATURED_SET;
     set({ initStarted: true, phase: 'loading', loadingMessage: 'Summoning cards from Scryfall\u2026' });
     try {
-      const cards = await fetchSetCards(SET_CODE);
-      set({ loadingMessage: 'Channeling 17lands win-rate data\u2026' });
-      const [ratings, colorRatings, basicLandArt] = await Promise.all([
-        fetchCardRatings(SET_CODE),
-        fetchColorRatings(SET_CODE),
-        fetchBasicLandArt(),
-      ]);
-      const rated = buildRatings(cards, ratings);
-      set({ cardPool: rated, colorRatings, basicLandArt, phase: 'menu' });
+      const { rated, colorRatings, basicLandArt } = await loadSetData(featured.code);
+      set({
+        cardPool: rated,
+        colorRatings,
+        basicLandArt,
+        loadedSetCode: featured.code,
+        selectedSet: featured,
+        setName: featured.name,
+        phase: 'menu',
+      });
     } catch (e) {
       // Allow a retry on failure.
       set({ phase: 'menu', error: `Failed to load card data: ${(e as Error).message}`, initStarted: false });
     }
   },
 
-  startDraft: () => {
-    const { cardPool } = get();
+  startDraft: async (setCode) => {
+    const state = get();
+    const target = getSet(setCode) ?? state.selectedSet;
+    let cardPool = state.cardPool;
+
+    // Load the target set's data on demand when switching sets (or on a cold
+    // cardPool after an init failure).
+    if (target.code !== state.loadedSetCode || cardPool.length === 0) {
+      set({
+        phase: 'loading',
+        loadingMessage: `Summoning ${target.name} from Scryfall\u2026`,
+        selectedSet: target,
+        setName: target.name,
+        error: undefined,
+      });
+      try {
+        const loaded = await loadSetData(target.code);
+        cardPool = loaded.rated;
+        set({
+          cardPool,
+          colorRatings: loaded.colorRatings,
+          basicLandArt: loaded.basicLandArt,
+          loadedSetCode: target.code,
+        });
+      } catch (e) {
+        set({ phase: 'menu', error: `Failed to load ${target.name}: ${(e as Error).message}` });
+        return;
+      }
+    } else {
+      set({ selectedSet: target, setName: target.name });
+    }
+
     const rounds = generateAllPacks(cardPool);
     const personas = rollBotTable(NUM_SEATS - 1);
     const bots = personas.map((p, i) => createBot(p, i));
@@ -301,7 +350,7 @@ export const useDraft = create<DraftStore>((set, get) => ({
     setTimeout(() => {
       const totalBasics = Object.values(s.basics).reduce((a, b) => a + b, 0);
       const review = buildReview(s.deck, totalBasics, s.picks, s.colorRatings, s.cardPool);
-      const records = appendRecord(recordFromReview(review, SET_CODE));
+      const records = appendRecord(recordFromReview(review, s.selectedSet.code));
       const profile = computeProfile(records);
       set({ review, records, profile, phase: 'grade' });
     }, 2600);
