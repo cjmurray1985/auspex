@@ -36,10 +36,13 @@
   /* Radius */
   --radius: 12px;
   --radius-sm: 8px;
-  /* Preordain type: Cinzel (engraved display, our own chrome — NOT WOTC's
-     Beleren) for titles; clean Inter sans for body/data legibility. */
+  /* Auspex type: Cinzel (engraved display) for our own chrome/titles; clean
+     Inter sans for body/data legibility. Beleren — MTG's actual card-title face
+     — is reserved for text that renders real card names, so a card name in the
+     deck list reads like the printed card (chrome stays Cinzel). */
   --font-title: 'Cinzel', Georgia, serif;
   --font-body: 'Inter', system-ui, sans-serif;
+  --font-card: 'Beleren Bold', 'Cinzel', Georgia, serif;
   font-family: var(--font-body);
   color-scheme: dark;
 }
@@ -655,7 +658,9 @@ h3,
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 18px;
+  font-family: var(--font-card);
+  font-weight: 700;
+  font-size: 17px;
   line-height: 1;
   color: #17181d;
 }
@@ -2025,7 +2030,7 @@ select.db-input {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 .decision-main { flex: 1; min-width: 0; }
-.decision-name { font-weight: 700; font-size: 0.95rem; display: block; }
+.decision-name { font-family: var(--font-card); font-weight: 700; font-size: 0.95rem; display: block; }
 .decision-sub {
   font-size: 0.8rem;
   color: var(--text-dim);
@@ -2084,7 +2089,7 @@ select.db-input {
 .alt-row.picked { background: rgba(212, 175, 106, 0.1); border: 1px solid rgba(212, 175, 106, 0.3); }
 .alt-thumb { width: 34px; border-radius: 3px; }
 .alt-body { flex: 1; min-width: 0; }
-.alt-name { font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+.alt-name { font-family: var(--font-card); font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
 .alt-you {
   font-size: 0.62rem;
   color: var(--gold-bright);
