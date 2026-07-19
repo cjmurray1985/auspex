@@ -1,8 +1,9 @@
-import type { ColorPairRating, RatedCard } from '../types';
+import type { ColorPairRating, DraftMode, RatedCard } from '../types';
 import type { CategoryScore, Confidence, DecisionEval } from './types';
 import type { EvaluationEngine } from './evaluation';
 import { canonicalPair, COLOR_NAMES } from './context';
 
+// Human table: signal reading is a top skill. (Sums to 1.)
 const WEIGHTS: Record<string, number> = {
   'card-eval': 0.22,
   'staying-open': 0.13,
@@ -11,6 +12,19 @@ const WEIGHTS: Record<string, number> = {
   'deck-cohesion': 0.15,
   'opportunity-cost': 0.08,
   'pick-efficiency': 0.12,
+};
+
+// Quick Draft bots follow a fixed pick order, so "signals" are largely an
+// artifact of that order — down-weighted, with the slack going to raw card
+// evaluation and pick efficiency (what actually wins vs bots). (Sums to 1.)
+const QUICK_WEIGHTS: Record<string, number> = {
+  'card-eval': 0.27,
+  'staying-open': 0.12,
+  'signal-reading': 0.05,
+  'archetype-commitment': 0.15,
+  'deck-cohesion': 0.16,
+  'opportunity-cost': 0.08,
+  'pick-efficiency': 0.17,
 };
 
 function pickWeight(pickNumber: number): number {
@@ -119,7 +133,7 @@ function stayingOpen(decisions: DecisionEval[]): CategoryScore {
 
 // ---------- Signal Reading ----------
 
-function signalReading(decisions: DecisionEval[]): CategoryScore {
+function signalReading(decisions: DecisionEval[], mode: DraftMode): CategoryScore {
   let aligned = 0;
   let missed = 0;
   const notes: string[] = [];
@@ -140,24 +154,30 @@ function signalReading(decisions: DecisionEval[]): CategoryScore {
   }
   const denom = aligned + missed;
   const score = denom > 0 ? Math.max(0, Math.min(100, 55 + (aligned / denom) * 45 - (missed / denom) * 40 + 20)) : 66;
+  const quick = mode === 'quick';
   if (missed > aligned) notes.push('Passed open colors more than once — the table was inviting you in.');
   else if (events) notes.push('Moved into open colors when the signals appeared.');
   else notes.push('Few clear signals arose this draft.');
+  if (quick) {
+    notes.push('Against Quick Draft bots, "open" means the bots undervalue that color in their fixed pick order — this counts for less here.');
+  }
   return {
     key: 'signal-reading',
     label: 'Signal Reading',
     score,
     weight: WEIGHTS['signal-reading'],
     confidence: bandFromEvidence(events, 0.55),
-    summary:
-      score >= 80
+    summary: quick
+      ? 'Signals vs bots reflect their fixed pick order, not a live table — a minor lever in Quick Draft.'
+      : score >= 80
         ? 'You read the table well and drafted the open colors.'
         : score >= 60
         ? 'Some signals read, some missed.'
         : 'Open colors went unrecognized — late strong cards are the table telling you what is free.',
     detail: notes,
-    recommendation:
-      score >= 80
+    recommendation: quick
+      ? 'Vs bots, exploit their blind spots: a strong color that keeps flowing is one the bots systematically under-pick — move in and reap it.'
+      : score >= 80
         ? 'Keep watching pick 5–8: when a strong color keeps flowing, lean into it harder.'
         : 'When a powerful card wheels or shows up late, treat it as a green light to move into that color.',
   };
@@ -373,16 +393,21 @@ export function buildCategories(
   finalColors: string[],
   _colorRatings: ColorPairRating[],
   _engine: EvaluationEngine,
+  mode: DraftMode = 'human',
 ): CategoryScore[] {
-  return [
+  const weights = mode === 'quick' ? QUICK_WEIGHTS : WEIGHTS;
+  const cats = [
     cardEval(decisions),
     stayingOpen(decisions),
-    signalReading(decisions),
+    signalReading(decisions, mode),
     archetypeCommitment(decisions, finalColors),
     deckCohesion(deckSpells, finalColors),
     opportunityCost(decisions),
     pickEfficiency(decisions),
   ];
+  // Apply the environment's weighting so the overall grade reflects what
+  // actually matters in that mode (e.g. signals matter far less vs QD bots).
+  return cats.map((c) => ({ ...c, weight: weights[c.key] ?? c.weight }));
 }
 
 export { canonicalPair };

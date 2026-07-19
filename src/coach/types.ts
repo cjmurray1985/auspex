@@ -1,4 +1,4 @@
-import type { RatedCard } from '../types';
+import type { DraftMode, RatedCard } from '../types';
 
 /**
  * Coaching domain model
@@ -284,6 +284,8 @@ export interface DraftReview {
   overall: number; // 0..100
   letter: string;
   confidence: Confidence;
+  /** The draft environment this review graded against. */
+  mode: DraftMode;
   headline: string;
   archetype: string;
   archetypeWinRate?: number;
@@ -321,6 +323,8 @@ export interface DraftRecord {
   id: string;
   date: string; // ISO
   set: string;
+  /** Draft environment (added PRE-49; older records may omit it). */
+  mode?: DraftMode;
   overall: number;
   letter: string;
   confidence: Confidence;

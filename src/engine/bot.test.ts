@@ -43,6 +43,7 @@ function skilledPower(): Persona {
     signalWeight: 0,
     synergyWeight: 0,
     raredraftBias: 1.0,
+    rareFade: 0.15,
     onColorMag: 4,
   };
 }

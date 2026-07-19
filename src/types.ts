@@ -1,5 +1,25 @@
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'mythic';
 
+/**
+ * Draft environment the pod emulates:
+ *  - 'quick': MTGA Quick Draft bots — rigid pick order, aggressive rare-drafting,
+ *    minimal signal adaptation, low variance (fidelity to what you face in QD).
+ *  - 'human': Auspex Human Table Sim — varied personas, signal reading, rares
+ *    wheel more (training for a Premier/paper table).
+ */
+export type DraftMode = 'quick' | 'human';
+
+export const DRAFT_MODES: Record<DraftMode, { label: string; blurb: string }> = {
+  quick: {
+    label: 'Quick Draft Bots',
+    blurb: "MTGA's bots — rigid pick order, they snap rares. What you face in Quick Draft.",
+  },
+  human: {
+    label: 'Human Table (Sim)',
+    blurb: 'A varied human pod that reads signals and lets rares wheel. Train for Premier/paper.',
+  },
+};
+
 export interface DraftCard {
   id: string;
   /** Unique per dealt copy — the same card can appear in multiple packs */

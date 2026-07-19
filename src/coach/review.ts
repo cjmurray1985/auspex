@@ -1,4 +1,4 @@
-import type { ColorPairRating, PickRecord, RatedCard } from '../types';
+import type { ColorPairRating, DraftMode, PickRecord, RatedCard } from '../types';
 import type { Confidence, DraftReview, PickTier } from './types';
 import { toLetter } from '../grading/grade';
 import { getEngine } from './evaluation';
@@ -44,6 +44,7 @@ export function buildReview(
   picks: PickRecord[],
   colorRatings: ColorPairRating[],
   cardPool: RatedCard[],
+  mode: DraftMode = 'human',
 ): DraftReview {
   const engine = getEngine(cardPool);
   const contexts = reconstructContexts(picks, engine);
@@ -54,7 +55,7 @@ export function buildReview(
   const landCount = deck.filter(isLand).length + basics;
   const finalColors = resolveColors(deckSpells, finalPool, engine);
 
-  const categories = buildCategories(decisions, deckSpells, finalColors, colorRatings, engine);
+  const categories = buildCategories(decisions, deckSpells, finalColors, colorRatings, engine, mode);
   const overall = Math.round(categories.reduce((a, c) => a + c.score * c.weight, 0));
 
   const tierCounts: Record<PickTier, number> = { best: 0, strong: 0, acceptable: 0, weak: 0, mistake: 0 };
@@ -85,6 +86,7 @@ export function buildReview(
     overall,
     letter: toLetter(overall),
     confidence,
+    mode,
     headline,
     archetype,
     archetypeWinRate,

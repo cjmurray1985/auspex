@@ -72,6 +72,7 @@ export function recordFromReview(review: DraftReview, set: string): DraftRecord 
     id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
     date: new Date().toISOString(),
     set,
+    mode: review.mode,
     overall: review.overall,
     letter: review.letter,
     confidence: review.confidence,

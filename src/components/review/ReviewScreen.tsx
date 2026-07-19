@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { DRAFT_MODES } from '../../types';
 import { useDraft } from '../../store';
 import { fx } from '../../fx/fx';
 import { rankAtRating } from '../../coach/profile';
@@ -151,6 +152,7 @@ export function ReviewScreen() {
           <div className="hero-eyebrow">
             DRAFT REVIEW · {review.archetype.toUpperCase()}
             {review.archetypeWinRate ? ` · ${(review.archetypeWinRate * 100).toFixed(1)}% FORMAT WR` : ''}
+            {` · VS ${DRAFT_MODES[review.mode].label.toUpperCase()}`}
           </div>
           <div className="hero-headline">{review.headline}</div>
           <div className="hero-badges">

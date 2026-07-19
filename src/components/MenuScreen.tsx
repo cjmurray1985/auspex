@@ -2,7 +2,35 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useDraft } from '../store';
 import { SETS, type DraftableSet } from '../data/sets';
+import { DRAFT_MODES, type DraftMode } from '../types';
 import { ProgressDashboard } from './review/ProgressDashboard';
+
+const MODES: DraftMode[] = ['quick', 'human'];
+
+function ModeToggle() {
+  const mode = useDraft((s) => s.mode);
+  const setMode = useDraft((s) => s.setMode);
+  return (
+    <div className="mode-toggle" role="radiogroup" aria-label="Draft opponents">
+      <span className="mode-toggle-label">Opponents</span>
+      <div className="mode-opts">
+        {MODES.map((m) => (
+          <button
+            key={m}
+            type="button"
+            role="radio"
+            aria-checked={mode === m}
+            className={`mode-opt${mode === m ? ' on' : ''}`}
+            onClick={() => setMode(m)}
+          >
+            <span className="mode-opt-title">{DRAFT_MODES[m].label}</span>
+            <span className="mode-opt-blurb">{DRAFT_MODES[m].blurb}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}auspex-logo.png`;
 
@@ -157,6 +185,8 @@ export function MenuScreen() {
         </motion.p>
 
         {error && <div className="da-error">{error}</div>}
+
+        <ModeToggle />
 
         <div className="da-set-head">
           <h2>Available to draft now</h2>
