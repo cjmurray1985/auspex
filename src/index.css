@@ -1594,6 +1594,20 @@ select.db-input {
   z-index: 9999;
   font-family: var(--font-body);
 }
+.bggal-head-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.bggal-set select {
+  background: #131a2e;
+  color: var(--text);
+  border: 1px solid #2a3050;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+}
 .bggal-head {
   position: sticky;
   top: 0;
