@@ -2454,50 +2454,51 @@ select.db-input {
 .mastery-level { font-size: 0.78rem; font-weight: 600; margin: 0.15rem 0; }
 .mastery-stat { font-size: 0.72rem; color: var(--text-dim); }
 
-/* achievements */
-.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0.6rem; }
+/* achievements — every tile is a small "trophy" fronted by a relevant card's
+   art: earned tiles show in full color with a gold check; locked tiles share
+   the exact same layout but desaturated + dimmed with a lock. Hovering any
+   tile reveals its goal/description. Nine per set keeps a clean 3×3 grid. */
+.ach-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
 .ach-card {
   position: relative;
   overflow: hidden;
   display: flex;
-  gap: 0.7rem;
-  align-items: center;
-  min-height: 92px;
-  padding: 0.7rem 0.9rem;
+  align-items: flex-end;
+  min-height: 104px;
   border-radius: 10px;
   background: rgba(19, 22, 36, 0.55);
   border: 1px solid rgba(58, 65, 102, 0.4);
-  opacity: 0.55;
 }
-.ach-card.earned { opacity: 1; border-color: rgba(212, 175, 106, 0.5); background: rgba(212, 175, 106, 0.08); }
-.ach-medal { font-size: 1.6rem; color: var(--text-dim); }
-.ach-name { font-weight: 700; font-size: 0.88rem; }
-.ach-desc { font-size: 0.74rem; color: var(--text-dim); line-height: 1.35; }
-
-/* earned achievements read as a small trophy: the relevant card's art fills
-   the tile, a legibility scrim anchors the name, and a gold check confirms it. */
-.ach-card.earned.has-art {
-  padding: 0;
-  align-items: flex-end;
+.ach-art {
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center 22%;
-  border-color: rgba(212, 175, 106, 0.65);
 }
-.ach-card.earned.has-art.unique { border-color: var(--gold-bright); }
-.ach-card.earned.has-art .ach-scrim {
+.ach-scrim {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, rgba(6, 8, 16, 0.05) 35%, rgba(6, 8, 16, 0.55) 70%, rgba(6, 8, 16, 0.9) 100%);
 }
-.ach-card.earned.has-art .ach-name {
+.ach-name {
   position: relative;
   z-index: 1;
   width: 100%;
   padding: 0.55rem 0.7rem;
+  font-weight: 700;
   font-size: 0.92rem;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95);
 }
-.ach-check {
+
+/* earned: full color, gold-edged */
+.ach-card.earned { border-color: rgba(212, 175, 106, 0.65); }
+.ach-card.earned.unique { border-color: var(--gold-bright); }
+
+/* locked: same layout, drained of color so it reads as "not yet" */
+.ach-card.locked .ach-art { filter: grayscale(1) brightness(0.42); }
+.ach-card.locked .ach-name { color: var(--text-dim); }
+
+.ach-badge {
   position: absolute;
   z-index: 2;
   right: 0.5rem;
@@ -2507,13 +2508,34 @@ select.db-input {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: var(--gold-bright);
-  color: #1a1205;
   font-size: 0.8rem;
   font-weight: 900;
   line-height: 1;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
 }
+.ach-badge.earned { background: var(--gold-bright); color: #1a1205; }
+.ach-badge.locked { background: rgba(20, 24, 38, 0.85); color: var(--text-dim); border: 1px solid rgba(255, 255, 255, 0.18); }
+
+/* hover reveals the goal / description over the whole tile */
+.ach-desc-hover {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.75rem;
+  background: rgba(6, 8, 16, 0.92);
+  color: var(--text);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+.ach-card:hover .ach-desc-hover,
+.ach-card:focus-within .ach-desc-hover { opacity: 1; }
 
 /* ---------- coaching home (menu) ---------- */
 .coach-card {

@@ -134,33 +134,29 @@ export function SetMasteryPanel({ mastery }: { mastery: SetMastery }) {
       <section className="mastery-modal-section">
         <h3>Achievements</h3>
         <div className="ach-grid">
-          {mastery.achievements.map((a) => {
-            const showArt = a.earned && !!a.art;
-            return (
-              <div
-                key={a.id}
-                className={`ach-card${a.earned ? ' earned' : ''}${a.unique ? ' unique' : ''}${showArt ? ' has-art' : ''}`}
-                style={showArt ? { backgroundImage: `url(${a.art})` } : undefined}
-                title={a.description}
+          {mastery.achievements.map((a) => (
+            <div
+              key={a.id}
+              className={`ach-card${a.earned ? ' earned' : ' locked'}${a.unique ? ' unique' : ''}`}
+            >
+              {a.art && <div className="ach-art" style={{ backgroundImage: `url(${a.art})` }} />}
+              <div className="ach-scrim" />
+              <div className="ach-name">{a.name}</div>
+              <span
+                className={`ach-badge${a.earned ? ' earned' : ' locked'}`}
+                aria-label={a.earned ? 'Earned' : 'Locked'}
               >
                 {a.earned ? (
-                  <>
-                    {showArt && <div className="ach-scrim" />}
-                    <div className="ach-name">{a.name}</div>
-                    <div className="ach-check" aria-label="Earned">✓</div>
-                  </>
+                  '✓'
                 ) : (
-                  <>
-                    <div className="ach-medal">☆</div>
-                    <div className="ach-body">
-                      <div className="ach-name">{a.name}</div>
-                      <div className="ach-desc">{a.description}</div>
-                    </div>
-                  </>
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden>
+                    <path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm-3 8V6a3 3 0 1 1 6 0v3H9z" />
+                  </svg>
                 )}
-              </div>
-            );
-          })}
+              </span>
+              <div className="ach-desc-hover">{a.description}</div>
+            </div>
+          ))}
         </div>
       </section>
 
