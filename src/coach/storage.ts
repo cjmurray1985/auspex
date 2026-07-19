@@ -19,29 +19,73 @@ export interface RecordStore {
   save(records: DraftRecord[]): void;
 }
 
-const KEY = 'mtgdraft:records:v1';
+// Signed-out (guest) history stays on the original key so existing users lose
+// nothing; each signed-in profile gets its own namespaced key.
+const GUEST_KEY = 'mtgdraft:records:v1';
+const PROFILE_PREFIX = 'auspex:records:v1:';
+const ACCOUNT_KEY = 'auspex:account';
+const MIGRATED_FLAG = 'auspex:migratedGuest';
 const LEGACY_KEY = 'mtgdraft:history';
 const MAX_RECORDS = 200;
 
+/** Read the active profile id straight from storage (no store dependency). */
+function activeProfileId(): string | null {
+  try {
+    const raw = localStorage.getItem(ACCOUNT_KEY);
+    if (raw) return (JSON.parse(raw) as { id?: string }).id ?? null;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+/** The records key for the current account (guest key when signed out). */
+function recordsKey(): string {
+  const id = activeProfileId();
+  return id ? PROFILE_PREFIX + id : GUEST_KEY;
+}
+
+/**
+ * One-time: copy pre-account (guest) history into the first profile a user
+ * signs into, so their existing performance data follows them. Later profiles
+ * start fresh. Best-effort; never throws.
+ */
+export function migrateGuestData(profileId: string): void {
+  try {
+    if (localStorage.getItem(MIGRATED_FLAG)) return;
+    const guest = localStorage.getItem(GUEST_KEY);
+    const profKey = PROFILE_PREFIX + profileId;
+    if (guest && !localStorage.getItem(profKey)) {
+      localStorage.setItem(profKey, guest);
+    }
+    localStorage.setItem(MIGRATED_FLAG, '1');
+  } catch {
+    /* ignore */
+  }
+}
+
 /**
  * The default, fully-offline store. Keeps the compact (card-blob-free)
- * `DraftRecord` set in `localStorage` and migrates the old lightweight history.
+ * `DraftRecord` set in `localStorage`, namespaced per profile, and migrates the
+ * old lightweight history for signed-out users.
  */
 export class LocalStorageRecordStore implements RecordStore {
   load(): DraftRecord[] {
+    const key = recordsKey();
     try {
-      const raw = localStorage.getItem(KEY);
+      const raw = localStorage.getItem(key);
       if (raw) return JSON.parse(raw) as DraftRecord[];
     } catch {
-      /* corrupt — fall through to legacy migration */
+      /* corrupt — fall through */
     }
-    return migrateLegacy();
+    // Only the guest namespace inherits the ancient lightweight history.
+    return key === GUEST_KEY ? migrateLegacy() : [];
   }
 
   save(records: DraftRecord[]): void {
     try {
       const trimmed = records.slice(-MAX_RECORDS);
-      localStorage.setItem(KEY, JSON.stringify(trimmed));
+      localStorage.setItem(recordsKey(), JSON.stringify(trimmed));
     } catch {
       /* quota — non-fatal */
     }
