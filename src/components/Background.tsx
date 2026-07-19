@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDraft } from '../store';
-import { MSH_ART, BG_MIN_WIDTH, artUrl, useBgPrefs } from '../data/backgrounds';
+import { artForSet, BG_MIN_WIDTH, artUrl, useBgPrefs } from '../data/backgrounds';
 
 const ROTATE_MS = 16000;
 // Skip anything narrower than this even if the CDN listing claimed otherwise.
@@ -15,15 +15,19 @@ const MIN_WIDTH = BG_MIN_WIDTH;
 export function Background() {
   const phase = useDraft((s) => s.phase);
   const currentRound = useDraft((s) => s.currentRound);
+  const selectedSet = useDraft((s) => s.selectedSet);
   const excluded = useBgPrefs((s) => s.excluded);
 
   const urls = useMemo(() => {
-    const pick = MSH_ART.filter((a) => a.w >= MIN_WIDTH && !excluded.has(a.num)).map((a) =>
-      artUrl(a.num),
-    );
+    // Only the SELECTED set's own mtgpics art — never another set's. Sets with
+    // no scraped pool yield no urls, so the layer stays a clean gradient.
+    const ex = new Set(excluded[selectedSet.code] ?? []);
+    const pick = artForSet(selectedSet.code)
+      .filter((a) => a.w >= MIN_WIDTH && !ex.has(a.num))
+      .map((a) => artUrl(selectedSet.mtgpicsCode, a.num));
     // De-dupe and shuffle for variety across sessions
     return [...new Set(pick)].sort(() => Math.random() - 0.5);
-  }, [excluded]);
+  }, [excluded, selectedSet]);
 
   // Two stacked layers we alternate between for a smooth crossfade. Each layer
   // carries its own crop position so portrait art can be top-anchored.

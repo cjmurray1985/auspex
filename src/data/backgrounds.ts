@@ -1,13 +1,15 @@
 import { create } from 'zustand';
-import { ACTIVE_SET } from './set';
 
 /**
- * Full-bleed background art, scraped from mtgpics.com's illustration index for
- * the active set (see `ACTIVE_SET` in `set.ts`). These are keyed by mtgpics'
- * own art number — NOT the card collector number — so the pool includes tokens,
- * basics, alternate arts and other pieces that don't map 1:1 to a draftable
- * card. Only pieces at least 1024px wide are kept; the halftone overlay (see
- * index.css) sharpens the smaller ones on hi-dpi screens.
+ * Full-bleed background art, scraped from mtgpics.com's illustration index
+ * per set. Art is keyed by mtgpics' own art number — NOT the card collector
+ * number — so the pool includes tokens, basics, alternate arts and other pieces
+ * that don't map 1:1 to a draftable card. Only pieces at least 1024px wide are
+ * kept; the halftone overlay (see index.css) sharpens smaller ones on hi-dpi.
+ *
+ * Each set has its OWN curatable pool (see `SET_ART`). Sets without a scraped
+ * pool render no background (clean gradient) until curated — mtgpics is the
+ * only art source, so we never borrow another set's art.
  */
 export interface ArtItem {
   /** mtgpics art number (path segment), zero-padded as stored on the CDN. */
@@ -18,14 +20,14 @@ export interface ArtItem {
   h: number;
 }
 
-/** Hi-res illustration URL for an art number. */
-export function artUrl(num: string): string {
-  return `https://www.mtgpics.com/pics/art/${ACTIVE_SET.mtgpicsCode}/${num}.jpg`;
+/** Hi-res illustration URL for a set's mtgpics code + art number. */
+export function artUrl(mtgpicsCode: string, num: string): string {
+  return `https://www.mtgpics.com/pics/art/${mtgpicsCode}/${num}.jpg`;
 }
 
 /** Smaller thumbnail (used by the curation gallery grid). */
-export function artThumbUrl(num: string): string {
-  return `https://www.mtgpics.com/pics/art_th_big/${ACTIVE_SET.mtgpicsCode}/${num}.jpg`;
+export function artThumbUrl(mtgpicsCode: string, num: string): string {
+  return `https://www.mtgpics.com/pics/art_th_big/${mtgpicsCode}/${num}.jpg`;
 }
 
 // Scraped 2026-07 from https://www.mtgpics.com/art?set=493&size=3 (all pages),
@@ -133,36 +135,64 @@ export const MSH_ART: ArtItem[] = [
   { num: '916', name: 'Zabu', artist: 'Rhonda Libbey', w: 2357, h: 3000 },
 ];
 
+/**
+ * Per-set curatable art pools, keyed by set code. Only sets with a scraped list
+ * appear here; any set not present renders the clean gradient (no borrowed art).
+ * Add a set by scraping mtgpics `art?set=<id>` (width >= 1024) into a new list,
+ * exactly like `MSH_ART`, and registering it here.
+ */
+export const SET_ART: Record<string, ArtItem[]> = {
+  MSH: MSH_ART,
+};
+
+/** The curatable art pool for a set code (empty if none scraped yet). */
+export function artForSet(code: string): ArtItem[] {
+  return SET_ART[code] ?? [];
+}
+
 /** Minimum art width (px) eligible for the background rotation. */
 export const BG_MIN_WIDTH = 1024;
 
-const LS_KEY = 'mtgdraft:bgExcluded:v1';
-function loadExcluded(): string[] {
+const LS_KEY = 'mtgdraft:bgExcluded:v2';
+const LEGACY_KEY = 'mtgdraft:bgExcluded:v1';
+
+/** Per-set exclusions: { [setCode]: excludedArtNumbers }. */
+type ExcludedMap = Record<string, string[]>;
+
+function loadExcluded(): ExcludedMap {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    return raw ? (JSON.parse(raw) as string[]) : [];
+    if (raw) return JSON.parse(raw) as ExcludedMap;
+    // Migrate the v1 flat list (MSH-only era) into the MSH bucket.
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    if (legacy) return { MSH: JSON.parse(legacy) as string[] };
   } catch {
-    return [];
+    /* ignore malformed prefs */
   }
+  return {};
 }
 
 interface BgPrefsStore {
-  /** Art numbers the user has unchecked (removed from the rotation). */
-  excluded: Set<string>;
-  toggle: (num: string) => void;
+  /** Per-set art numbers the user has unchecked (removed from the rotation). */
+  excluded: ExcludedMap;
+  toggle: (setCode: string, num: string) => void;
+  isExcluded: (setCode: string, num: string) => boolean;
 }
 
 /**
  * Persisted background-selection store, shared between the live Background and
- * the #bg-gallery curation tool so unchecking a piece removes it everywhere.
+ * the #bg-gallery curation tool so unchecking a piece removes it everywhere —
+ * now scoped per set so curating one set never affects another.
  */
 export const useBgPrefs = create<BgPrefsStore>((set, get) => ({
-  excluded: new Set(loadExcluded()),
-  toggle: (num) => {
-    const next = new Set(get().excluded);
-    if (next.has(num)) next.delete(num);
-    else next.add(num);
-    localStorage.setItem(LS_KEY, JSON.stringify([...next]));
+  excluded: loadExcluded(),
+  toggle: (setCode, num) => {
+    const cur = new Set(get().excluded[setCode] ?? []);
+    if (cur.has(num)) cur.delete(num);
+    else cur.add(num);
+    const next = { ...get().excluded, [setCode]: [...cur] };
+    localStorage.setItem(LS_KEY, JSON.stringify(next));
     set({ excluded: next });
   },
+  isExcluded: (setCode, num) => (get().excluded[setCode] ?? []).includes(num),
 }));
