@@ -127,8 +127,10 @@ export function ReviewScreen() {
   const letterColor = gradeColor(review.letter);
 
   return (
-    <div className="review-screen">
-      {/* ---------- Hero ---------- */}
+    <div className={`review-screen${guided ? ' review-guided' : ''}`}>
+      {/* ---------- Hero (full review only; the guided verdict carries this
+          on the landing so the coach results aren't shown twice) ---------- */}
+      {!guided && (
       <div className="review-hero">
         <motion.div className="hero-left" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
           <motion.div
@@ -173,9 +175,20 @@ export function ReviewScreen() {
           </div>
         </div>
       </div>
+      )}
 
       {guided && (
-        <GuidedReview review={review} profile={profile} onJump={jump} onExit={() => setGuided(false)} />
+        <GuidedReview
+          review={review}
+          profile={profile}
+          isPB={isPB}
+          best={best}
+          recordCount={records.length}
+          onJump={jump}
+          onExit={() => setGuided(false)}
+          onDraftAgain={() => startDraft()}
+          onMainMenu={reset}
+        />
       )}
 
       {!guided && (
@@ -291,14 +304,16 @@ export function ReviewScreen() {
       </>
       )}
 
-      <div className="review-actions">
-        <button className="btn-primary" onClick={() => startDraft()}>
-          Draft Again
-        </button>
-        <button className="btn-ghost" onClick={reset}>
-          Main Menu
-        </button>
-      </div>
+      {!guided && (
+        <div className="review-actions">
+          <button className="btn-primary" onClick={() => startDraft()}>
+            Draft Again
+          </button>
+          <button className="btn-ghost" onClick={reset}>
+            Main Menu
+          </button>
+        </div>
+      )}
     </div>
   );
 }

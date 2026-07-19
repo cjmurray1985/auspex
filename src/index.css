@@ -2567,10 +2567,20 @@ select.db-input {
 .db-details-btn { padding: 0.5rem 1rem; }
 
 /* Guided post-draft review (PRE-34) */
+/* Guided walkthrough owns the whole coach landing (no competing hero). */
+.review-guided {
+  min-height: 82vh;
+  justify-content: center;
+}
 .guided-review {
-  max-width: 760px;
+  max-width: 820px;
+  width: 100%;
   margin: 0 auto;
-  padding: var(--space-5) 0;
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
 }
 .gr-progress {
   display: flex;
@@ -2597,7 +2607,7 @@ select.db-input {
   cursor: pointer;
 }
 .gr-skip:hover { color: var(--foresight-glow); }
-.gr-step { min-height: 240px; }
+.gr-step { min-height: 300px; display: flex; flex-direction: column; justify-content: center; }
 .gr-step-eyebrow {
   font-size: var(--text-xs);
   letter-spacing: 0.18em;
@@ -2606,9 +2616,14 @@ select.db-input {
   margin-bottom: var(--space-2);
 }
 .gr-step-title { font-family: var(--font-title); font-size: var(--text-xl); margin-bottom: var(--space-4); }
-.gr-verdict { text-align: center; }
-.gr-verdict .gr-letter { font-family: var(--font-title); font-size: 4.5rem; line-height: 1; }
-.gr-verdict .gr-headline { font-size: var(--text-lg); margin: var(--space-3) 0 var(--space-4); }
+.gr-verdict { text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--space-3); }
+.gr-verdict-grade { display: flex; align-items: baseline; justify-content: center; gap: var(--space-4); }
+.gr-verdict .gr-letter { font-family: var(--font-title); font-size: 5.5rem; line-height: 1; }
+.gr-verdict .gr-score { font-family: var(--font-title); font-size: var(--text-2xl); color: var(--text-dim); }
+.gr-verdict .gr-score span { font-size: var(--text-lg); opacity: 0.7; }
+.gr-verdict .gr-headline { font-size: var(--text-lg); margin: 0; max-width: 60ch; }
+.gr-verdict-badges { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; justify-content: center; }
+.gr-nav-end { display: flex; align-items: center; gap: var(--space-3); }
 .gr-next { display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start; }
 .gr-goal {
   border: 1px solid var(--pk-edge);

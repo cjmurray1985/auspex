@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { create } from 'zustand';
 import type { RatedCard } from '../types';
@@ -29,6 +30,9 @@ interface HoverState {
   hide: () => void;
   freeze: () => void;
   unfreeze: () => void;
+  /** Fully clear the preview AND any freeze — used on screen/phase changes so a
+   *  hover can never leak from the draft into the coach review. */
+  reset: () => void;
 }
 
 export const useHover = create<HoverState>((set) => ({
@@ -42,6 +46,7 @@ export const useHover = create<HoverState>((set) => ({
   hide: () => set({ card: null, rect: null }),
   freeze: () => set({ frozen: true }),
   unfreeze: () => set({ frozen: false }),
+  reset: () => set({ card: null, rect: null, frozen: false }),
 }));
 
 const toRect = (el: Element): Rect => {
@@ -120,6 +125,27 @@ function GlowLayer({ card, rect, show }: { card: RatedCard | null; rect: Rect | 
 
 export function CardPreviewLayer() {
   const { card, rect, mode, glow } = useHover();
+
+  // Safety net so a preview can never get "stuck": if the hovered element
+  // unmounts (e.g. the last pick flies away into grading, or a review step
+  // swaps cards) the onMouseLeave never fires. Any of these globally dismiss it.
+  useEffect(() => {
+    const hide = () => useHover.getState().hide();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') hide();
+    };
+    window.addEventListener('scroll', hide, true);
+    window.addEventListener('pointerdown', hide, true);
+    window.addEventListener('blur', hide);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('scroll', hide, true);
+      window.removeEventListener('pointerdown', hide, true);
+      window.removeEventListener('blur', hide);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, []);
+
   return (
     <>
       <GlowLayer card={card} rect={rect} show={glow} />
