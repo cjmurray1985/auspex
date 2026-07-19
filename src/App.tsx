@@ -4,7 +4,7 @@ import { useDraft } from './store';
 import { MenuScreen, LoadingScreen } from './components/MenuScreen';
 import { DraftScreen } from './components/DraftScreen';
 import { DeckBuilder } from './components/DeckBuilder';
-import { CardPreviewLayer } from './components/CardPreview';
+import { CardPreviewLayer, useHover } from './components/CardPreview';
 
 // Heavy, end-of-flow / background views are code-split so they stay out of the
 // initial shell. The review UI (charts + panels) is only needed after a draft,
@@ -65,6 +65,12 @@ export default function App() {
   useEffect(() => {
     init();
   }, [init]);
+
+  // Clear any hover preview whenever the screen changes, so a card being hovered
+  // at the end of the draft can't stay locked over the coach review.
+  useEffect(() => {
+    useHover.getState().reset();
+  }, [phase]);
 
   // Wire the browser Back button to exit the draft experience to the menu (the
   // draft stays resumable). Entering a session pushes one history entry so Back
