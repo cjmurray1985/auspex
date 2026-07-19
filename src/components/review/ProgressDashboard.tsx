@@ -48,20 +48,32 @@ export function ProgressDashboard({ profile }: { profile: CoachProfile }) {
 
       {/* Rating header */}
       <div className="rating-header">
-        <div className="rating-badge" style={{ borderColor: profile.rank.color }}>
-          <div className="rating-rank" style={{ color: profile.rank.color }}>{profile.rank.name}</div>
+        <div
+          className="rating-badge"
+          style={{ borderColor: profile.calibrating ? 'var(--text-dim)' : profile.rank.color }}
+        >
+          <div
+            className="rating-rank"
+            style={{ color: profile.calibrating ? 'var(--text-dim)' : profile.rank.color }}
+          >
+            {profile.rankLabel}
+          </div>
           <div className="rating-number">
             {profile.rating}
             <span className="rating-delta"><Delta value={profile.ratingDelta} /></span>
           </div>
           <div className="rating-next">
-            {profile.nextRank ? (
+            {profile.calibrating ? (
+              <span>
+                {profile.calibrationRemaining} more draft{profile.calibrationRemaining === 1 ? '' : 's'} to earn your rank
+              </span>
+            ) : profile.nextRank ? (
               <>
                 <div className="rating-track"><i style={{ width: `${toNext}%`, background: profile.rank.color }} /></div>
                 <span>{profile.nextRank.min - profile.rating} to {profile.nextRank.name}</span>
               </>
             ) : (
-              <span>Top rank reached — peak {profile.peakRating}</span>
+              <span>Apex reached — peak {profile.peakRating}</span>
             )}
           </div>
         </div>

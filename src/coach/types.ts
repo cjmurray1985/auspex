@@ -400,6 +400,14 @@ export interface CoachProfile {
   ratingDelta: number; // change from the previous draft
   rank: CoachRank;
   nextRank?: CoachRank;
+  /** Display label, e.g. "Sharpshooter II", "Oracle", or "Calibrating". */
+  rankLabel: string;
+  /** Within-rank division 1..4 (I highest); undefined at the apex rank. */
+  rankDivision?: number;
+  /** True until the player has completed the calibration drafts (no rank yet). */
+  calibrating: boolean;
+  /** Drafts remaining before a rank is assigned. */
+  calibrationRemaining: number;
   ratingHistory: number[];
   personalBest: number;
   streak: number; // current consecutive improving/quality streak

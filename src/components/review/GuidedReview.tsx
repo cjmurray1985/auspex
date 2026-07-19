@@ -18,6 +18,25 @@ interface Step {
   render: () => ReactNode;
 }
 
+/** Rank/rating chip that shows a calibration state before the player is placed. */
+function RatingChip({ profile }: { profile: CoachProfile }) {
+  if (profile.calibrating) {
+    return (
+      <span className="rating-chip" style={{ borderColor: 'var(--text-dim)', color: 'var(--text-dim)' }}>
+        Calibrating · {profile.calibrationRemaining} to rank
+      </span>
+    );
+  }
+  return (
+    <span className="rating-chip" style={{ borderColor: profile.rank.color, color: profile.rank.color }}>
+      {profile.rankLabel} · {profile.rating}
+      {profile.ratingDelta !== 0 && (
+        <b> {profile.ratingDelta > 0 ? '+' : ''}{profile.ratingDelta}</b>
+      )}
+    </span>
+  );
+}
+
 export function GuidedReview({
   review,
   profile,
@@ -61,12 +80,7 @@ export function GuidedReview({
             <ConfidencePill level={review.confidence} />
             {isPB && <span className="pb-badge">NEW PERSONAL BEST</span>}
             {best !== null && !isPB && <span className="badge">Best: {best}/100 · {recordCount} drafts</span>}
-            <span className="rating-chip" style={{ borderColor: profile.rank.color, color: profile.rank.color }}>
-              {profile.rank.name} · {profile.rating}
-              {profile.ratingDelta !== 0 && (
-                <b> {profile.ratingDelta > 0 ? '+' : ''}{profile.ratingDelta}</b>
-              )}
-            </span>
+            <RatingChip profile={profile} />
           </div>
           <div className="tier-summary">
             {(['best', 'strong', 'acceptable', 'weak', 'mistake'] as const).map((t) => (
@@ -109,12 +123,7 @@ export function GuidedReview({
       title: "Where you're headed",
       render: () => (
         <div className="gr-next">
-          <span className="rating-chip" style={{ borderColor: profile.rank.color, color: profile.rank.color }}>
-            {profile.rank.name} · {profile.rating}
-            {profile.ratingDelta !== 0 && (
-              <b> {profile.ratingDelta > 0 ? '+' : ''}{profile.ratingDelta}</b>
-            )}
-          </span>
+          <RatingChip profile={profile} />
           {topGoal && (
             <div className="gr-goal">
               <div className="gr-goal-title">This week: {topGoal.title}</div>
