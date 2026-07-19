@@ -125,6 +125,54 @@ export function SetMasteryRing({
   );
 }
 
+/** Achievements + color-pair mastery sections for one set. Shared by the tile
+ *  quick-peek modal and the full set landing page. */
+export function SetMasteryPanel({ mastery }: { mastery: SetMastery }) {
+  const played = mastery.colorPairs.filter((p) => p.games > 0);
+  return (
+    <>
+      <section className="mastery-modal-section">
+        <h3>Achievements</h3>
+        <div className="ach-grid">
+          {mastery.achievements.map((a) => (
+            <div
+              key={a.id}
+              className={`ach-card${a.earned ? ' earned' : ''}${a.unique ? ' unique' : ''}`}
+            >
+              <div className="ach-medal">{a.earned ? (a.unique ? '✦' : '★') : '☆'}</div>
+              <div className="ach-body">
+                <div className="ach-name">
+                  {a.name}
+                  {a.unique && <span className="ach-tag">signature</span>}
+                </div>
+                <div className="ach-desc">{a.description}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mastery-modal-section">
+        <h3>Color-pair mastery</h3>
+        {played.length === 0 && (
+          <p className="mastery-empty">Draft this set to start growing color-pair mastery.</p>
+        )}
+        <div className="mastery-grid">
+          {mastery.colorPairs.map((p) => (
+            <div key={p.pair} className="mastery-cell" style={{ borderColor: LEVEL_COLOR[p.level] }}>
+              <div className="mastery-name">{p.label}</div>
+              <div className="mastery-level" style={{ color: LEVEL_COLOR[p.level] }}>{LEVEL_LABEL[p.level]}</div>
+              <div className="mastery-stat">
+                {p.games ? `${p.games} draft${p.games === 1 ? '' : 's'} · ${Math.round(p.avg)} avg` : '—'}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}
+
 /** Full set-mastery detail: color-pair mastery + achievements for one set. */
 export function SetMasteryModal({
   setName,
@@ -135,7 +183,6 @@ export function SetMasteryModal({
   mastery: SetMastery;
   onClose: () => void;
 }) {
-  const played = mastery.colorPairs.filter((p) => p.games > 0);
   return (
     <div className="mastery-modal-backdrop" onClick={onClose}>
       <motion.div
@@ -161,44 +208,7 @@ export function SetMasteryModal({
           <button className="mastery-modal-close" onClick={onClose} aria-label="Close">×</button>
         </header>
 
-        <section className="mastery-modal-section">
-          <h3>Achievements</h3>
-          <div className="ach-grid">
-            {mastery.achievements.map((a) => (
-              <div
-                key={a.id}
-                className={`ach-card${a.earned ? ' earned' : ''}${a.unique ? ' unique' : ''}`}
-              >
-                <div className="ach-medal">{a.earned ? (a.unique ? '✦' : '★') : '☆'}</div>
-                <div className="ach-body">
-                  <div className="ach-name">
-                    {a.name}
-                    {a.unique && <span className="ach-tag">signature</span>}
-                  </div>
-                  <div className="ach-desc">{a.description}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mastery-modal-section">
-          <h3>Color-pair mastery</h3>
-          {played.length === 0 && (
-            <p className="mastery-empty">Draft this set to start growing color-pair mastery.</p>
-          )}
-          <div className="mastery-grid">
-            {mastery.colorPairs.map((p) => (
-              <div key={p.pair} className="mastery-cell" style={{ borderColor: LEVEL_COLOR[p.level] }}>
-                <div className="mastery-name">{p.label}</div>
-                <div className="mastery-level" style={{ color: LEVEL_COLOR[p.level] }}>{LEVEL_LABEL[p.level]}</div>
-                <div className="mastery-stat">
-                  {p.games ? `${p.games} draft${p.games === 1 ? '' : 's'} · ${Math.round(p.avg)} avg` : '—'}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <SetMasteryPanel mastery={mastery} />
       </motion.div>
     </div>
   );

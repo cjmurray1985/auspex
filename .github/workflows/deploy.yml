@@ -45,6 +45,12 @@ jobs:
           rm -rf _site
           mkdir -p _site/draft-academy
           cp -r dist/* _site/draft-academy/
+          # SPA deep-link fallback: the client router owns paths like
+          # /auspex/draft-academy/msh/, which have no built file. Serving the
+          # app shell as the site-wide 404 lets those links load the SPA, which
+          # then reads the path and renders the set page. Asset URLs in the
+          # shell are absolute (Vite base), so they resolve from any depth.
+          cp dist/index.html _site/404.html
           cat > _site/index.html <<'EOF'
           <!doctype html>
           <html lang="en">

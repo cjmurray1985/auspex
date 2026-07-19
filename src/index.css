@@ -2776,24 +2776,27 @@ select.db-input {
 .app-nav-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.65rem;
+}
+.app-nav-logo-btn {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.2rem 0.3rem;
+  padding: 0;
+  line-height: 0;
   border-radius: var(--radius-sm);
 }
 .app-nav-logo {
   display: block;
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
 }
-.app-nav-wordmark {
+/* Active section name, in place of the company wordmark. */
+.app-nav-section {
   font-family: var(--font-title);
-  font-size: var(--text-sm);
-  letter-spacing: 0.22em;
+  font-size: var(--text-md);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-dim);
-  opacity: 0.75;
+  color: var(--gold-bright);
 }
 
 .app-nav-links {
@@ -2818,19 +2821,6 @@ select.db-input {
 .app-nav-link:hover:not(:disabled):not(.is-soon) {
   color: var(--text);
   background: rgba(212, 175, 106, 0.08);
-}
-.app-nav-link.is-active {
-  color: var(--gold-bright);
-}
-.app-nav-link.is-active::after {
-  content: '';
-  position: absolute;
-  left: 0.85rem;
-  right: 0.85rem;
-  bottom: 0.15rem;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
 }
 .app-nav-link:disabled {
   opacity: 0.4;
@@ -3471,7 +3461,131 @@ select.db-input {
   letter-spacing: 0.02em;
 }
 
+/* ==========================================================================
+   Set landing page (…/draft-academy/msh/) — draft CTA + per-set mastery
+   ========================================================================== */
+.set-page {
+  flex: 1;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.6rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+}
+.set-page-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 0.4rem 0.2rem;
+  margin-bottom: 1rem;
+  transition: color 0.16s ease;
+}
+.set-page-back:hover {
+  color: var(--gold-bright);
+}
+
+.set-page-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid rgba(212, 175, 106, 0.24);
+  min-height: 300px;
+  display: flex;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+.set-page-hero-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.set-page-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(6, 8, 16, 0.35) 0%, rgba(6, 8, 16, 0.55) 45%, rgba(6, 8, 16, 0.9) 100%),
+    radial-gradient(120% 90% at 50% 20%, transparent 40%, rgba(6, 8, 16, 0.7) 100%);
+}
+.set-page-hero-body {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 2.4rem 1.8rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.55rem;
+}
+.set-page-symbol {
+  width: 52px;
+  height: 52px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7));
+}
+.set-page-title {
+  font-family: var(--font-title);
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+  line-height: 1.1;
+  margin: 0.1rem 0 0;
+  color: var(--text);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
+}
+.set-page-blurb {
+  color: var(--text);
+  max-width: 52ch;
+  margin: 0.3rem 0 0;
+  font-size: var(--text-md);
+  line-height: 1.55;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
+}
+.set-page-cta {
+  margin-top: 1.2rem;
+}
+
+.set-page-progress {
+  margin-top: 1.8rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(160deg, var(--bg-panel-2), var(--bg-panel));
+  padding: 1.4rem 1.5rem 1.8rem;
+}
+.set-page-progress-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.set-page-progress-title {
+  font-family: var(--font-title);
+  font-size: var(--text-xl);
+  margin: 0.1rem 0 0;
+  color: var(--text);
+}
+.set-page-progress .mastery-modal-pct {
+  max-width: 16rem;
+}
+
 @media (max-width: 640px) {
+  .set-page-progress-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+  .set-page-progress .mastery-modal-pct {
+    margin-left: 0;
+    text-align: left;
+  }
   .set-grid {
     grid-template-columns: 1fr;
     grid-template-rows: none;
