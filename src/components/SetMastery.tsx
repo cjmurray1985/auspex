@@ -17,32 +17,70 @@ export const LEVEL_LABEL: Record<MasteryLevel, string> = {
   struggling: 'Struggling',
 };
 
-/** Compact circular set-mastery progress ring (used on set tiles). */
-export function SetMasteryRing({ pct, size = 48 }: { pct: number; size?: number }) {
-  const stroke = 4;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
+/**
+ * Set-mastery ring — a delicate celestial dial (concept-inspired): a dark disc,
+ * a thin outer progress arc that reads teal when empty and gold as it fills, a
+ * faint inner rune-dot ring, and four subtle cardinal marks. Kept low-contrast
+ * so it decorates the card rather than shouting over the art.
+ */
+const RING_TEAL = '#8fd8cf';
+
+export function SetMasteryRing({ pct, size = 50 }: { pct: number; size?: number }) {
   const filled = Math.max(0, Math.min(1, pct));
+  const stroke = size >= 64 ? 3 : 2.25;
+  const pad = stroke + 3; // headroom for the cardinal marks
+  const cx = size / 2;
+  const cy = size / 2;
+  const rOuter = (size - pad * 2) / 2;
+  const rInner = rOuter - 4.5;
+  const cOuter = 2 * Math.PI * rOuter;
+  const arcColor = filled >= 0.5 ? 'var(--gold-bright)' : RING_TEAL;
+  const cardinals = [
+    [cx, pad - 1],
+    [size - pad + 1, cy],
+    [cx, size - pad + 1],
+    [pad - 1, cy],
+  ];
   return (
     <span className="mastery-ring" title={`Set mastery ${Math.round(filled * 100)}%`}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* opaque disc so the ring reads on any art */}
-        <circle cx={size / 2} cy={size / 2} r={size / 2} fill="rgba(6,8,16,0.72)" />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth={stroke} />
+        <circle cx={cx} cy={cy} r={rInner + 1.5} fill="rgba(6,8,16,0.55)" />
+        {/* faint full track */}
+        <circle cx={cx} cy={cy} r={rOuter} fill="none" stroke="rgba(180,214,222,0.16)" strokeWidth={stroke} />
+        {/* progress arc: teal when low, gold as it fills */}
         <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
+          cx={cx}
+          cy={cy}
+          r={rOuter}
           fill="none"
-          stroke="var(--gold-bright)"
+          stroke={arcColor}
           strokeWidth={stroke}
           strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * (1 - filled)}
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          strokeDasharray={cOuter}
+          strokeDashoffset={cOuter * (1 - filled)}
+          transform={`rotate(-90 ${cx} ${cy})`}
+          opacity={0.85}
         />
+        {/* inner rune-dot ring */}
+        <circle
+          cx={cx}
+          cy={cy}
+          r={rInner}
+          fill="none"
+          stroke={RING_TEAL}
+          strokeWidth={1}
+          strokeDasharray="0.5 3"
+          strokeLinecap="round"
+          opacity={0.3}
+        />
+        {/* cardinal marks */}
+        {cardinals.map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r={0.9} fill={RING_TEAL} opacity={0.5} />
+        ))}
       </svg>
-      <span className="mastery-ring-pct">{Math.round(filled * 100)}%</span>
+      <span className="mastery-ring-pct" style={{ color: arcColor }}>
+        {Math.round(filled * 100)}%
+      </span>
     </span>
   );
 }
