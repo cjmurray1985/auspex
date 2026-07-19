@@ -317,7 +317,6 @@ function SetLandingPage({
             <img className="set-page-symbol" src={setSymbolUrl(set)} alt="" draggable={false} />
             <div className="experience-lockup">{live ? set.format : 'Coming soon'}</div>
             <h1 className="set-page-title">{set.name}</h1>
-            <p className="set-page-blurb">{set.blurb}</p>
             {error && <div className="da-error">{error}</div>}
             <button
               className="btn-primary set-page-cta"
