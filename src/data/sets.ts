@@ -44,6 +44,11 @@ export function setArtUrl(set: DraftableSet): string | null {
   return `https://api.scryfall.com/cards/${set.code.toLowerCase()}/${set.art.cn}?format=image&version=art_crop`;
 }
 
+/** Scryfall monochrome set-symbol SVG for a set. */
+export function setSymbolUrl(set: DraftableSet): string {
+  return `https://svgs.scryfall.io/sets/${set.code.toLowerCase()}.svg`;
+}
+
 export const SETS: DraftableSet[] = [
   {
     ...ACTIVE_SET,

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useDraft } from '../store';
-import { SETS, setArtUrl, type DraftableSet } from '../data/sets';
+import { SETS, setArtUrl, setSymbolUrl, type DraftableSet } from '../data/sets';
 import { useAccount } from '../data/account';
 import { DRAFT_MODES, type DraftMode } from '../types';
 import { setMastery, type SetMastery } from '../coach/mastery';
@@ -117,33 +117,33 @@ function SetTile({
         <img className="set-tile-art" src={art} alt="" loading="lazy" draggable={false} />
       )}
       <div className="set-tile-scrim" />
+
+      <button
+        className="set-tile-ring-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenMastery(set);
+        }}
+        aria-label={`${set.name} set mastery`}
+        title="Set mastery"
+      >
+        <SetMasteryRing pct={mastery.pct} />
+      </button>
+
       <div className="set-tile-content">
-        <div className="set-tile-top">
-          <span className="set-tile-code">{set.code}</span>
+        <div className="set-tile-meta">
+          <img
+            className="set-tile-symbol"
+            src={setSymbolUrl(set)}
+            alt={set.code}
+            loading="lazy"
+            draggable={false}
+          />
           <span className={`set-tile-badge${live ? '' : ' set-tile-badge-soon'}`}>
             {live ? set.format : 'Coming soon'}
           </span>
         </div>
         <div className="set-tile-name">{set.name}</div>
-        <div className="set-tile-blurb">{set.blurb}</div>
-        <div className="set-tile-foot">
-          {live ? (
-            <span className="set-tile-cta">{set.featured ? 'Enter Draft' : 'Draft'} →</span>
-          ) : (
-            <span />
-          )}
-          <button
-            className="set-tile-ring-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenMastery(set);
-            }}
-            aria-label={`${set.name} set mastery`}
-            title="Set mastery"
-          >
-            <SetMasteryRing pct={mastery.pct} />
-          </button>
-        </div>
       </div>
     </motion.div>
   );
