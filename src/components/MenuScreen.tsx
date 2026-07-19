@@ -338,11 +338,6 @@ export function MenuScreen() {
 
         {error && <div className="da-error">{error}</div>}
 
-        <div className="da-set-head">
-          <h2>Available to draft now</h2>
-          <span>Mirrors MTG Arena&apos;s limited queues</span>
-        </div>
-
         <motion.div
           className="set-grid"
           initial={{ opacity: 0, y: 12 }}

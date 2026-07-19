@@ -3172,9 +3172,16 @@ select.db-input {
 
 .set-grid {
   width: 100%;
+  margin-top: 2rem;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  /* MTGA-style: one large featured card on the left, the rest as stacked
+     banner cards on the right. */
+  grid-template-columns: 1.5fr 1fr;
+  grid-template-rows: repeat(3, minmax(118px, 1fr));
   gap: 1rem;
+}
+.set-grid .set-tile:not(.set-tile-featured) {
+  grid-column: 2;
 }
 
 .set-tile {
@@ -3182,7 +3189,7 @@ select.db-input {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 190px;
+  min-height: 0;
   text-align: left;
   border-radius: var(--radius);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -3199,8 +3206,9 @@ select.db-input {
   transform: scale(1.05);
 }
 .set-tile-featured {
-  grid-column: span 2;
-  min-height: 230px;
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  min-height: 0;
   border-color: rgba(212, 175, 106, 0.4);
 }
 .set-tile-soon {
@@ -3462,9 +3470,21 @@ select.db-input {
   letter-spacing: 0.02em;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
+  .set-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+  .set-grid .set-tile,
+  .set-grid .set-tile:not(.set-tile-featured) {
+    grid-column: 1;
+  }
   .set-tile-featured {
-    grid-column: span 1;
+    grid-row: auto;
+    min-height: 200px;
+  }
+  .set-tile:not(.set-tile-featured) {
+    min-height: 120px;
   }
   .app-nav-link.is-soon {
     display: none;
