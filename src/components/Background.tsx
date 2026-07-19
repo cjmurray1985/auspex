@@ -19,6 +19,9 @@ export function Background() {
   const excluded = useBgPrefs((s) => s.excluded);
 
   const urls = useMemo(() => {
+    // Homepage is a plain black canvas (a future 3D "seed" environment lands
+    // here) — no rotating art on the menu.
+    if (phase === 'menu') return [];
     // Only the SELECTED set's own mtgpics art — never another set's. Sets with
     // no scraped pool yield no urls, so the layer stays a clean gradient.
     const ex = new Set(excluded[selectedSet.code] ?? []);
@@ -27,7 +30,7 @@ export function Background() {
       .map((a) => artUrl(selectedSet.mtgpicsCode, a.num));
     // De-dupe and shuffle for variety across sessions
     return [...new Set(pick)].sort(() => Math.random() - 0.5);
-  }, [excluded, selectedSet]);
+  }, [excluded, selectedSet, phase]);
 
   // Two stacked layers we alternate between for a smooth crossfade. Each layer
   // carries its own crop position so portrait art can be top-anchored.
@@ -114,6 +117,15 @@ export function Background() {
     if (phase !== 'draft' || urls.length < 2) return;
     showNext.current();
   }, [phase, currentRound, urls]);
+
+  // Returning to the homepage clears any art so it's a clean black canvas.
+  useEffect(() => {
+    if (phase === 'menu') setLayers({ a: null, b: null, showA: true });
+  }, [phase]);
+
+  if (phase === 'menu') {
+    return <div className="bg-root bg-black" aria-hidden />;
+  }
 
   return (
     <div className={`bg-root bg-phase-${phase}`} aria-hidden>
