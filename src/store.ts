@@ -16,6 +16,7 @@ import { botPick, createBot, rollBotTable, type BotState, type Persona } from '.
 import { buildReview } from './coach/review';
 import { appendRecord, loadRecords, recordFromReview } from './coach/persistence';
 import { computeProfile } from './coach/profile';
+import { currentProfileId } from './data/account';
 
 interface DraftStore {
   phase: Phase;
@@ -63,6 +64,9 @@ interface DraftStore {
   init: () => Promise<void>;
   /** Set (and persist) the default draft mode. */
   setMode: (mode: DraftMode) => void;
+  /** Re-read records, profile, and mode for the currently signed-in account.
+   *  Call after sign in / sign out so performance data + settings switch. */
+  reloadForAccount: () => void;
   /** Enter a draft. Pass a set code to draft that set; defaults to the
    *  currently selected set. Optionally override the mode for this draft.
    *  Re-fetches card data when the set changes. */
@@ -83,10 +87,14 @@ interface DraftStore {
 
 export const PICK_SECONDS = 50;
 
-const MODE_KEY = 'auspex:draftMode';
+/** Draft mode is a per-profile setting (guest namespace when signed out). */
+function modeKey(): string {
+  const id = currentProfileId();
+  return id ? `auspex:draftMode:${id}` : 'auspex:draftMode';
+}
 function loadMode(): DraftMode {
   try {
-    const m = localStorage.getItem(MODE_KEY);
+    const m = localStorage.getItem(modeKey());
     if (m === 'quick' || m === 'human') return m;
   } catch {
     /* ignore */
@@ -162,11 +170,16 @@ export const useDraft = create<DraftStore>((set, get) => ({
 
   setMode: (mode) => {
     try {
-      localStorage.setItem(MODE_KEY, mode);
+      localStorage.setItem(modeKey(), mode);
     } catch {
       /* ignore */
     }
     set({ mode });
+  },
+
+  reloadForAccount: () => {
+    const records = loadRecords();
+    set({ records, profile: computeProfile(records), mode: loadMode() });
   },
 
   startDraft: async (setCode, mode) => {

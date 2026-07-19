@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useDraft } from '../store';
 import { SETS, type DraftableSet } from '../data/sets';
+import { useAccount } from '../data/account';
 import { DRAFT_MODES, type DraftMode } from '../types';
 import { ProgressDashboard } from './review/ProgressDashboard';
 
+const LOGO_SRC = `${import.meta.env.BASE_URL}auspex-logo.png`;
 const MODES: DraftMode[] = ['quick', 'human'];
 
+/** Opponents (draft environment) selector — a profile setting. */
 function ModeToggle() {
   const mode = useDraft((s) => s.mode);
   const setMode = useDraft((s) => s.setMode);
@@ -32,21 +35,19 @@ function ModeToggle() {
   );
 }
 
-const LOGO_SRC = `${import.meta.env.BASE_URL}auspex-logo.png`;
-
-/** Platform nav. Auspex (the brand) is deliberately minimized to the corner
- *  mark; the experiences it houses are the foreground. */
+/** Platform nav. Auspex (the brand) is minimized to the corner mark; the
+ *  experiences it houses lead, with the player's Profile on the right. */
 function AppNav({
   active,
   onDraft,
-  onCoach,
-  hasHistory,
+  onProfile,
 }: {
-  active: 'draft' | 'coach';
+  active: 'draft' | 'profile';
   onDraft: () => void;
-  onCoach: () => void;
-  hasHistory: boolean;
+  onProfile: () => void;
 }) {
+  const account = useAccount((s) => s.profile);
+  const initial = account?.name.trim().charAt(0).toUpperCase() || '?';
   return (
     <nav className="app-nav" aria-label="Auspex">
       <button className="app-nav-brand" onClick={onDraft} aria-label="Auspex home">
@@ -61,16 +62,21 @@ function AppNav({
         >
           Draft Academy
         </button>
-        <button
-          className={`app-nav-link${active === 'coach' ? ' is-active' : ''}`}
-          onClick={onCoach}
-          disabled={!hasHistory}
-          title={hasHistory ? undefined : 'Draft once to unlock your coach'}
-        >
-          Coach
-        </button>
         <span className="app-nav-link is-soon">Puzzles<em>soon</em></span>
         <span className="app-nav-link is-soon">Lessons<em>soon</em></span>
+        <button
+          className={`app-nav-profile${active === 'profile' ? ' is-active' : ''}`}
+          onClick={onProfile}
+        >
+          {account ? (
+            <>
+              <span className="app-nav-avatar" aria-hidden>{initial}</span>
+              <span className="app-nav-profile-name">{account.name}</span>
+            </>
+          ) : (
+            <span className="app-nav-signin">Sign in</span>
+          )}
+        </button>
       </div>
     </nav>
   );
@@ -101,6 +107,116 @@ function SetTile({ set, onDraft }: { set: DraftableSet; onDraft: (code: string) 
   );
 }
 
+/** Sign-in / performance / settings — everything tied to the player's account. */
+function ProfileScreen({ onBackToDraft }: { onBackToDraft: () => void }) {
+  const account = useAccount((s) => s.profile);
+  const signIn = useAccount((s) => s.signIn);
+  const signOut = useAccount((s) => s.signOut);
+  const reloadForAccount = useDraft((s) => s.reloadForAccount);
+  const startDraft = useDraft((s) => s.startDraft);
+  const profile = useDraft((s) => s.profile);
+  const [name, setName] = useState('');
+
+  const doSignIn = () => {
+    if (!name.trim()) return;
+    signIn(name);
+    reloadForAccount();
+  };
+  const doSignOut = () => {
+    signOut();
+    reloadForAccount();
+  };
+
+  if (!account) {
+    return (
+      <div className="menu-shell">
+        <AppNav active="profile" onDraft={onBackToDraft} onProfile={() => {}} />
+        <main className="profile-page">
+          <motion.div
+            className="signin-card"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <img className="signin-logo" src={LOGO_SRC} alt="" width={52} height={52} />
+            <h1 className="signin-title">Sign in to Auspex</h1>
+            <p className="signin-sub">
+              Your profile keeps your draft rating, coaching history, and settings. Pick a handle to
+              start — enter the same one later to pick up where you left off.
+            </p>
+            <form
+              className="signin-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                doSignIn();
+              }}
+            >
+              <input
+                className="signin-input"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your handle"
+                aria-label="Handle"
+                maxLength={40}
+                autoFocus
+              />
+              <button className="btn-primary" type="submit" disabled={!name.trim()}>
+                Sign in
+              </button>
+            </form>
+            <p className="signin-note">
+              Saved on this device for now — cloud sync is coming. No password required.
+            </p>
+          </motion.div>
+        </main>
+      </div>
+    );
+  }
+
+  const hasHistory = profile.drafts > 0;
+  const since = new Date(account.createdAt).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+
+  return (
+    <div className="menu-shell">
+      <AppNav active="profile" onDraft={onBackToDraft} onProfile={() => {}} />
+      <main className="profile-page">
+        <header className="profile-head">
+          <div className="profile-id">
+            <span className="profile-avatar" aria-hidden>{account.name.charAt(0).toUpperCase()}</span>
+            <div>
+              <h1 className="profile-name">{account.name}</h1>
+              <span className="profile-since">
+                {`${account.name}'s Academy · member since ${since}`}
+              </span>
+            </div>
+          </div>
+          <button className="btn-ghost" onClick={doSignOut}>Sign out</button>
+        </header>
+
+        <section className="profile-section">
+          <h2 className="profile-section-title">Settings</h2>
+          <ModeToggle />
+        </section>
+
+        <section className="profile-section">
+          <h2 className="profile-section-title">Performance</h2>
+          {hasHistory ? (
+            <ProgressDashboard profile={profile} />
+          ) : (
+            <div className="profile-empty">
+              <p>No drafts yet. Your rating, coaching history, and mastery show up here once you draft.</p>
+              <button className="btn-primary" onClick={() => startDraft()}>Start a draft</button>
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
+}
+
 export function MenuScreen() {
   const startDraft = useDraft((s) => s.startDraft);
   const resumeDraft = useDraft((s) => s.resumeDraft);
@@ -108,41 +224,21 @@ export function MenuScreen() {
   const setName = useDraft((s) => s.setName);
   const profile = useDraft((s) => s.profile);
   const error = useDraft((s) => s.error);
-  const [view, setView] = useState<'menu' | 'progress'>('menu');
+  const account = useAccount((s) => s.profile);
+  const [view, setView] = useState<'menu' | 'profile'>('menu');
 
-  const hasHistory = profile.drafts > 0;
+  const signedIn = !!account;
+  const hasHistory = signedIn && profile.drafts > 0;
   const topInsight = profile.insights[0];
   const topGoal = profile.goals[0];
 
-  if (view === 'progress') {
-    return (
-      <div className="menu-shell">
-        <AppNav
-          active="coach"
-          hasHistory={hasHistory}
-          onDraft={() => setView('menu')}
-          onCoach={() => setView('progress')}
-        />
-        <div className="progress-page">
-          <div className="progress-page-head">
-            <button className="btn-ghost" onClick={() => setView('menu')}>← Draft Academy</button>
-            <h2 className="progress-page-title">Your Coach</h2>
-            <button className="btn-primary" style={{ padding: '0.6rem 1.6rem' }} onClick={() => startDraft()}>New Draft</button>
-          </div>
-          <ProgressDashboard profile={profile} />
-        </div>
-      </div>
-    );
+  if (view === 'profile') {
+    return <ProfileScreen onBackToDraft={() => setView('menu')} />;
   }
 
   return (
     <div className="menu-shell">
-      <AppNav
-        active="draft"
-        hasHistory={hasHistory}
-        onDraft={() => setView('menu')}
-        onCoach={() => setView('progress')}
-      />
+      <AppNav active="draft" onDraft={() => setView('menu')} onProfile={() => setView('profile')} />
 
       <main className="da-landing">
         {pausedPhase && (
@@ -186,8 +282,6 @@ export function MenuScreen() {
 
         {error && <div className="da-error">{error}</div>}
 
-        <ModeToggle />
-
         <div className="da-set-head">
           <h2>Available to draft now</h2>
           <span>Mirrors MTG Arena&apos;s limited queues</span>
@@ -204,13 +298,13 @@ export function MenuScreen() {
           ))}
         </motion.div>
 
-        {hasHistory && (
+        {hasHistory ? (
           <motion.button
             className="coach-card"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            onClick={() => setView('progress')}
+            onClick={() => setView('profile')}
           >
             <div className="coach-card-rating" style={{ borderColor: profile.rank.color }}>
               <span className="ccr-rank" style={{ color: profile.rank.color }}>{profile.rank.name}</span>
@@ -238,6 +332,24 @@ export function MenuScreen() {
               </div>
             </div>
             <span className="coach-card-cta">View your coach →</span>
+          </motion.button>
+        ) : (
+          <motion.button
+            className="coach-card coach-card-signin"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            onClick={() => setView('profile')}
+          >
+            <div className="coach-card-body">
+              <div className="coach-card-insight">
+                {signedIn ? 'Draft to start building your coaching profile.' : 'Sign in to track your rating and coaching history.'}
+              </div>
+              <div className="coach-card-meta">
+                <span>{signedIn ? 'View your profile' : 'Your performance data lives in your profile'}</span>
+              </div>
+            </div>
+            <span className="coach-card-cta">{signedIn ? 'Open profile →' : 'Sign in →'}</span>
           </motion.button>
         )}
       </main>
