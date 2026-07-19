@@ -106,11 +106,13 @@ function AppNav({
 function SetTile({
   set,
   mastery,
+  ringDelay,
   onDraft,
   onOpenMastery,
 }: {
   set: DraftableSet;
   mastery: SetMastery;
+  ringDelay: number;
   onDraft: (code: string) => void;
   onOpenMastery: (set: DraftableSet) => void;
 }) {
@@ -143,11 +145,11 @@ function SetTile({
           e.stopPropagation();
           onOpenMastery(set);
         }}
-        aria-label={`${set.name} set mastery`}
-        title="Set mastery"
-      >
-        <SetMasteryRing pct={mastery.pct} />
-      </button>
+          aria-label={`${set.name} set mastery`}
+          title="Set mastery"
+        >
+          <SetMasteryRing pct={mastery.pct} delay={ringDelay} />
+        </button>
 
       <div className="set-tile-content">
         <div className="set-tile-meta">
@@ -344,11 +346,12 @@ export function MenuScreen() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
         >
-          {SETS.map((s) => (
+          {SETS.map((s, i) => (
             <SetTile
               key={s.code}
               set={s}
               mastery={setMastery(records, s.code)}
+              ringDelay={0.7 + i * 0.15}
               onDraft={startDraft}
               onOpenMastery={setMasterySet}
             />
