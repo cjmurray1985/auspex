@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 
 :root {
   /* ---- Preordain brand tokens — "Foreseen / The Pool of Knowledge" (see docs/BRAND.md) ---- */
@@ -37,14 +37,35 @@
   --radius: 12px;
   --radius-sm: 8px;
   /* Auspex type: Cinzel (engraved display) for our own chrome/titles; clean
-     Inter sans for body/data legibility. Beleren — MTG's actual card-title face
-     — is reserved for text that renders real card names, so a card name in the
-     deck list reads like the printed card (chrome stays Cinzel). */
+     Inter sans for UI + data legibility; Spectral (a screen serif) for prose /
+     paragraph copy, which pairs with Cinzel for a literary, oracular feel.
+     Beleren — MTG's actual card-title face — is reserved for text that renders
+     real card names, so a card name in the deck list reads like the printed
+     card (chrome stays Cinzel). */
   --font-title: 'Cinzel', Georgia, serif;
   --font-body: 'Inter', system-ui, sans-serif;
+  --font-prose: 'Spectral', Georgia, serif;
   --font-card: 'Beleren Bold', 'Cinzel', Georgia, serif;
   font-family: var(--font-body);
   color-scheme: dark;
+}
+
+/* Paragraph / prose copy uses the Spectral serif (complements Cinzel); UI,
+   controls, and data stay in Inter for density + legibility. */
+p,
+.da-hero-sub,
+.tab-intro,
+.coach-says p,
+.hero-headline,
+.gr-headline,
+.ach-desc,
+.habit-desc,
+.goal-detail,
+.signin-sub,
+.mastery-empty,
+.mastery-modal .ach-desc {
+  font-family: var(--font-prose);
+  letter-spacing: 0.005em;
 }
 
 * {
