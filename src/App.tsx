@@ -24,9 +24,6 @@ const BgGallery = lazy(() =>
 
 type Phase = 'loading' | 'draft' | 'build' | 'grading' | 'grade' | 'menu';
 
-// Phases that make up the "draft experience" — Back exits these to the menu.
-const SESSION_PHASES = new Set<Phase>(['draft', 'build', 'grading', 'grade']);
-
 // Return the concrete screen element for a phase. This must NOT be a
 // phase-reactive wrapper component: AnimatePresence (mode="wait") keeps the
 // outgoing wrapper mounted while it animates out, and a live-phase wrapper
@@ -72,30 +69,38 @@ export default function App() {
     useHover.getState().reset();
   }, [phase]);
 
-  // Wire the browser Back button to exit the draft experience to the menu (the
-  // draft stays resumable). Entering a session pushes one history entry so Back
-  // has a target; Back (or Forward) toggles between the menu and the session.
+  // Guard accidental abandonment mid-draft. While drafting or deck-building,
+  // closing/reloading/leaving the tab triggers the browser's native confirm.
   useEffect(() => {
-    const inSession = SESSION_PHASES.has(phase);
-    const stateIsDraft = window.history.state?.draft === true;
-    if (inSession && !stateIsDraft) {
-      window.history.pushState({ draft: true }, '');
-    } else if (!inSession && stateIsDraft) {
-      // Reached the menu while the current entry is still flagged as a draft
-      // (e.g. finished grading and chose "Back to menu") — clear the flag so
-      // Back/Forward can't resurrect a finished session.
-      window.history.replaceState(null, '');
-    }
+    const active = phase === 'draft' || phase === 'build';
+    if (!active) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [phase]);
+
+  // Entering an active draft pushes one history entry so the browser Back button
+  // has a target we can intercept — Back mid-draft asks to confirm abandonment.
+  useEffect(() => {
+    const active = phase === 'draft' || phase === 'build';
+    const flagged = window.history.state?.draft === true;
+    if (active && !flagged) window.history.pushState({ draft: true }, '');
+    else if (!active && flagged) window.history.replaceState(null, '');
   }, [phase]);
 
   useEffect(() => {
     const onPop = () => {
       const s = useDraft.getState();
-      const stateIsDraft = window.history.state?.draft === true;
-      if (stateIsDraft && s.pausedPhase) {
-        s.resumeDraft(); // Forward pressed back into a paused session
-      } else if (SESSION_PHASES.has(s.phase)) {
-        s.pauseToMenu(); // Back pressed out of the draft experience
+      const active = s.phase === 'draft' || s.phase === 'build';
+      if (!active) return;
+      if (window.confirm('Abandon your draft? Your progress will be lost.')) {
+        s.reset();
+      } else {
+        // Stay in the draft — restore the history entry we just popped.
+        window.history.pushState({ draft: true }, '');
       }
     };
     window.addEventListener('popstate', onPop);

@@ -21,9 +21,6 @@ import { currentProfileId } from './data/account';
 
 interface DraftStore {
   phase: Phase;
-  /** When the user backs out of an in-progress draft to the menu, the phase to
-   *  resume into ('draft' or 'build'). null when there's nothing to resume. */
-  pausedPhase: Phase | null;
   loadingMessage: string;
   error?: string;
   /** The set the player is drafting (or will draft). */
@@ -72,10 +69,6 @@ interface DraftStore {
    *  currently selected set. Optionally override the mode for this draft.
    *  Re-fetches card data when the set changes. */
   startDraft: (setCode?: string, mode?: DraftMode) => Promise<void>;
-  /** Back out of an active draft to the menu, keeping the draft resumable. */
-  pauseToMenu: () => void;
-  /** Return to the paused draft/build phase. */
-  resumeDraft: () => void;
   setActiveTab: (tab: 'deck' | 'sideboard') => void;
   makePick: (card: RatedCard) => void;
   moveToDeck: (card: RatedCard) => void;
@@ -120,7 +113,6 @@ export const useDraft = create<DraftStore>((set, get) => ({
   // Start on the loading screen — init() runs on mount, so we skip the brief
   // menu → loading → menu flash by not showing the menu first.
   phase: 'loading',
-  pausedPhase: null,
   loadingMessage: 'Summoning cards from Scryfall\u2026',
   selectedSet: FEATURED_SET,
   mode: loadMode(),
@@ -235,21 +227,8 @@ export const useDraft = create<DraftStore>((set, get) => ({
       activeTab: 'deck',
       review: null,
       phase: 'draft',
-      pausedPhase: null,
       pickDeadline: Date.now() + PICK_SECONDS * 1000,
     });
-  },
-
-  pauseToMenu: () => {
-    const { phase } = get();
-    // Only draft/deck-build are resumable; a finished grade is not "underway".
-    const resumable = phase === 'draft' || phase === 'build';
-    set({ phase: 'menu', pausedPhase: resumable ? phase : null });
-  },
-
-  resumeDraft: () => {
-    const { pausedPhase } = get();
-    if (pausedPhase) set({ phase: pausedPhase, pausedPhase: null });
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),
@@ -407,7 +386,6 @@ export const useDraft = create<DraftStore>((set, get) => ({
   reset: () => {
     set({
       phase: 'menu',
-      pausedPhase: null,
       humanPack: [],
       humanPool: [],
       picks: [],
