@@ -86,6 +86,11 @@ body {
     linear-gradient(180deg, #0b1020 0%, #0a0e1a 100%);
 }
 
+/* Homepage: plain black canvas (a 3D "seed" environment will live here). */
+.bg-root.bg-black {
+  background: #000;
+}
+
 .bg-layer {
   position: absolute;
   inset: -4%; /* headroom so the Ken Burns drift never shows an edge */
