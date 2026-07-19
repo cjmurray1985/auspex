@@ -312,15 +312,6 @@ export function MenuScreen() {
         >
           Draft. Review. Improve. Repeat.
         </motion.h1>
-        <motion.p
-          className="da-hero-sub"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15 }}
-        >
-          Pick a set from Arena&apos;s limited menu, draft it against seven bots, and get every pick
-          reviewed for decision quality — so you get a little better every draft.
-        </motion.p>
 
         {error && <div className="da-error">{error}</div>}
 
