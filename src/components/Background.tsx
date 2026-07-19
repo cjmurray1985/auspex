@@ -124,7 +124,15 @@ export function Background() {
   }, [phase]);
 
   if (phase === 'menu') {
-    return <div className="bg-root bg-black" aria-hidden />;
+    return (
+      <div className="bg-root bg-academy" aria-hidden>
+        <div
+          className="bg-academy-img"
+          style={{ backgroundImage: `url(${import.meta.env.BASE_URL}draft-academy-bg.png)` }}
+        />
+        <div className="bg-academy-scrim" />
+      </div>
+    );
   }
 
   return (
