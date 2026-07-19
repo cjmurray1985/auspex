@@ -896,6 +896,18 @@ h3,
   color: var(--gold-bright);
   font-size: 1.05rem;
 }
+/* Draft mana curve mirrored from the in-draft DeckPanel, tucked at the left of
+   the deck-builder toolbar (Arena parity). */
+.db-toolbar-curve {
+  display: flex;
+  align-items: flex-end;
+  padding: 0 0.6rem;
+  margin-right: 0.2rem;
+  border-right: 1px solid rgba(212, 175, 106, 0.14);
+}
+.db-toolbar-curve .mini-curve {
+  height: 30px;
+}
 .db-stat {
   display: flex;
   align-items: center;
