@@ -282,9 +282,6 @@ function ProfileScreen({ onBackToDraft }: { onBackToDraft: () => void }) {
 
 export function MenuScreen() {
   const startDraft = useDraft((s) => s.startDraft);
-  const resumeDraft = useDraft((s) => s.resumeDraft);
-  const pausedPhase = useDraft((s) => s.pausedPhase);
-  const setName = useDraft((s) => s.setName);
   const records = useDraft((s) => s.records);
   const error = useDraft((s) => s.error);
   const [view, setView] = useState<'menu' | 'profile'>('menu');
@@ -299,19 +296,6 @@ export function MenuScreen() {
       <AppNav active="draft" onDraft={() => setView('menu')} onProfile={() => setView('profile')} />
 
       <main className="da-landing">
-        {pausedPhase && (
-          <motion.div
-            className="resume-banner"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <span>You have a draft in progress{setName ? ` — ${setName}` : ''}.</span>
-            <button className="btn-primary" style={{ padding: '0.5rem 1.4rem' }} onClick={resumeDraft}>
-              Resume Draft
-            </button>
-          </motion.div>
-        )}
-
         <motion.div
           className="experience-lockup"
           initial={{ opacity: 0 }}
