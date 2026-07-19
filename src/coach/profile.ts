@@ -162,7 +162,7 @@ function dimensions(withData: DraftRecord[]): DimensionTrend[] {
   });
 }
 
-function colorPairs(records: DraftRecord[]): ColorPairStat[] {
+export function colorPairsOf(records: DraftRecord[]): ColorPairStat[] {
   return ALL_PAIRS.map((pair) => {
     const games = records.filter((r) => r.colors === pair);
     const scores = games.map((g) => g.overall);
@@ -318,7 +318,7 @@ export function computeProfile(records: DraftRecord[]): CoachProfile {
   const { current: streak, best: bestStreak } = improvingStreak(records);
   const withData = records.filter((r) => Object.keys(r.categories).length > 0);
   const dims = dimensions(withData);
-  const pairs = colorPairs(records);
+  const pairs = colorPairsOf(records);
   const patterns = recurring(records);
 
   return {

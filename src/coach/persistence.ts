@@ -64,7 +64,11 @@ function computeFlags(review: DraftReview): HabitFlag[] {
   return flags;
 }
 
-export function recordFromReview(review: DraftReview, set: string): DraftRecord {
+export function recordFromReview(
+  review: DraftReview,
+  set: string,
+  earnedAchievements: string[] = [],
+): DraftRecord {
   const categories = Object.fromEntries(
     review.categories.map((c) => [c.key, Math.round(c.score)]),
   ) as Record<CategoryKey, number>;
@@ -73,6 +77,7 @@ export function recordFromReview(review: DraftReview, set: string): DraftRecord 
     date: new Date().toISOString(),
     set,
     mode: review.mode,
+    earnedAchievements,
     overall: review.overall,
     letter: review.letter,
     confidence: review.confidence,

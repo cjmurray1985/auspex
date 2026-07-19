@@ -325,6 +325,8 @@ export interface DraftRecord {
   set: string;
   /** Draft environment (added PRE-49; older records may omit it). */
   mode?: DraftMode;
+  /** Per-set achievement ids earned by this draft (deck-based). */
+  earnedAchievements?: string[];
   overall: number;
   letter: string;
   confidence: Confidence;

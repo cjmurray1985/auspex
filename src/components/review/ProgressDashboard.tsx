@@ -1,23 +1,8 @@
 import { motion } from 'framer-motion';
-import type { CoachProfile, MasteryLevel } from '../../coach/types';
+import type { CoachProfile } from '../../coach/types';
 import { RatingChart } from './charts';
 import { NudgeBanner } from './NudgeBanner';
 import { MeterBar, scoreColor } from './ui';
-
-const LEVEL_COLOR: Record<MasteryLevel, string> = {
-  unplayed: '#3a4166',
-  learning: '#8ad0f0',
-  proficient: '#6ad8b0',
-  mastered: '#6ad88a',
-  struggling: '#e0a880',
-};
-const LEVEL_LABEL: Record<MasteryLevel, string> = {
-  unplayed: 'Unplayed',
-  learning: 'Learning',
-  proficient: 'Proficient',
-  mastered: 'Mastered',
-  struggling: 'Struggling',
-};
 
 function Delta({ value }: { value: number }) {
   const v = Math.round(value);
@@ -158,37 +143,8 @@ export function ProgressDashboard({ profile }: { profile: CoachProfile }) {
         </section>
       )}
 
-      {/* Color-pair mastery */}
-      <section>
-        <h3 className="section-head">Color-pair mastery</h3>
-        <div className="mastery-grid">
-          {profile.colorPairs.map((p) => (
-            <div key={p.pair} className="mastery-cell" style={{ borderColor: LEVEL_COLOR[p.level] }}>
-              <div className="mastery-name">{p.label}</div>
-              <div className="mastery-level" style={{ color: LEVEL_COLOR[p.level] }}>{LEVEL_LABEL[p.level]}</div>
-              <div className="mastery-stat">
-                {p.games ? `${p.games} draft${p.games === 1 ? '' : 's'} · ${Math.round(p.avg)} avg` : '—'}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Achievements */}
-      <section>
-        <h3 className="section-head">Achievements</h3>
-        <div className="ach-grid">
-          {profile.achievements.map((a) => (
-            <div key={a.id} className={`ach-card${a.earned ? ' earned' : ''}`}>
-              <div className="ach-medal">{a.earned ? '★' : '☆'}</div>
-              <div className="ach-body">
-                <div className="ach-name">{a.name}</div>
-                <div className="ach-desc">{a.description}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* Color-pair mastery and achievements now live per set (see the mastery
+          ring on each Draft Academy set tile). */}
     </div>
   );
 }
