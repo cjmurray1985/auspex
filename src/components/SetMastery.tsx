@@ -18,15 +18,17 @@ export const LEVEL_LABEL: Record<MasteryLevel, string> = {
 };
 
 /** Compact circular set-mastery progress ring (used on set tiles). */
-export function SetMasteryRing({ pct, size = 40 }: { pct: number; size?: number }) {
-  const stroke = 3.5;
+export function SetMasteryRing({ pct, size = 48 }: { pct: number; size?: number }) {
+  const stroke = 4;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const filled = Math.max(0, Math.min(1, pct));
   return (
     <span className="mastery-ring" title={`Set mastery ${Math.round(filled * 100)}%`}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth={stroke} />
+        {/* opaque disc so the ring reads on any art */}
+        <circle cx={size / 2} cy={size / 2} r={size / 2} fill="rgba(6,8,16,0.72)" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth={stroke} />
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -40,7 +42,7 @@ export function SetMasteryRing({ pct, size = 40 }: { pct: number; size?: number 
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </svg>
-      <span className="mastery-ring-pct">{Math.round(filled * 100)}</span>
+      <span className="mastery-ring-pct">{Math.round(filled * 100)}%</span>
     </span>
   );
 }
