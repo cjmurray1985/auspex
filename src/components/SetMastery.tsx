@@ -134,21 +134,33 @@ export function SetMasteryPanel({ mastery }: { mastery: SetMastery }) {
       <section className="mastery-modal-section">
         <h3>Achievements</h3>
         <div className="ach-grid">
-          {mastery.achievements.map((a) => (
-            <div
-              key={a.id}
-              className={`ach-card${a.earned ? ' earned' : ''}${a.unique ? ' unique' : ''}`}
-            >
-              <div className="ach-medal">{a.earned ? (a.unique ? '✦' : '★') : '☆'}</div>
-              <div className="ach-body">
-                <div className="ach-name">
-                  {a.name}
-                  {a.unique && <span className="ach-tag">signature</span>}
-                </div>
-                <div className="ach-desc">{a.description}</div>
+          {mastery.achievements.map((a) => {
+            const showArt = a.earned && !!a.art;
+            return (
+              <div
+                key={a.id}
+                className={`ach-card${a.earned ? ' earned' : ''}${a.unique ? ' unique' : ''}${showArt ? ' has-art' : ''}`}
+                style={showArt ? { backgroundImage: `url(${a.art})` } : undefined}
+                title={a.description}
+              >
+                {a.earned ? (
+                  <>
+                    {showArt && <div className="ach-scrim" />}
+                    <div className="ach-name">{a.name}</div>
+                    <div className="ach-check" aria-label="Earned">✓</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="ach-medal">☆</div>
+                    <div className="ach-body">
+                      <div className="ach-name">{a.name}</div>
+                      <div className="ach-desc">{a.description}</div>
+                    </div>
+                  </>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

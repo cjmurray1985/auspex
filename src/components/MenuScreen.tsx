@@ -315,11 +315,8 @@ function SetLandingPage({
           <div className="set-page-hero-scrim" />
           <div className="set-page-hero-body">
             <img className="set-page-symbol" src={setSymbolUrl(set)} alt="" draggable={false} />
-            <div className="experience-lockup">Draft Academy</div>
+            <div className="experience-lockup">{live ? set.format : 'Coming soon'}</div>
             <h1 className="set-page-title">{set.name}</h1>
-            <div className={`set-tile-badge${live ? '' : ' set-tile-badge-soon'}`}>
-              {live ? set.format : 'Coming soon'}
-            </div>
             <p className="set-page-blurb">{set.blurb}</p>
             {error && <div className="da-error">{error}</div>}
             <button
@@ -345,11 +342,6 @@ function SetLandingPage({
             </div>
             <div className="mastery-modal-pct">
               <SetMasteryRing pct={mastery.pct} size={64} delay={0.15} />
-              <span>
-                {mastery.achievementsEarned}/{mastery.achievementsTotal} achievements ·{' '}
-                {mastery.pairsMastered}/10 pairs ·{' '}
-                {mastery.drafts} draft{mastery.drafts === 1 ? '' : 's'}
-              </span>
             </div>
           </header>
           <SetMasteryPanel mastery={mastery} />

@@ -1,6 +1,7 @@
 import type { ColorPairStat, DraftRecord } from './types';
 import { colorPairsOf } from './profile';
 import { SET_ACHIEVEMENTS } from '../data/achievements';
+import { cardArtUrl } from '../data/sets';
 
 /**
  * Set mastery
@@ -16,6 +17,8 @@ export interface SetAchievementStatus {
   description: string;
   unique: boolean;
   earned: boolean;
+  /** Scryfall art-crop URL fronting the earned tile (null if none assigned). */
+  art: string | null;
 }
 
 export interface SetMastery {
@@ -44,6 +47,7 @@ export function setMastery(records: DraftRecord[], setCode: string): SetMastery 
     description: d.description,
     unique: !!d.unique,
     earned: earnedIds.has(d.id) || (d.fromHistory ? d.fromHistory(setRecords) : false),
+    art: d.art ? cardArtUrl(setCode, d.art.cn) : null,
   }));
 
   const achievementsEarned = achievements.filter((a) => a.earned).length;

@@ -38,10 +38,15 @@ export interface DraftableSet extends SetConfig {
   art?: { cn: string; card: string; artist: string };
 }
 
+/** Stable Scryfall art-crop URL for a specific card (by set code + collector no.). */
+export function cardArtUrl(code: string, cn: string): string {
+  return `https://api.scryfall.com/cards/${code.toLowerCase()}/${cn}?format=image&version=art_crop`;
+}
+
 /** Stable Scryfall art-crop URL for a set's tile art (null if none set). */
 export function setArtUrl(set: DraftableSet): string | null {
   if (!set.art) return null;
-  return `https://api.scryfall.com/cards/${set.code.toLowerCase()}/${set.art.cn}?format=image&version=art_crop`;
+  return cardArtUrl(set.code, set.art.cn);
 }
 
 /** Scryfall monochrome set-symbol SVG for a set. */
@@ -54,7 +59,7 @@ export const SETS: DraftableSet[] = [
     ...ACTIVE_SET,
     status: 'live',
     format: 'Premier Draft',
-    blurb: "Marvel's mightiest, drafted three packs deep.",
+    blurb: 'Players, assemble.',
     featured: true,
     art: { cn: '233', card: 'Thanos, the Mad Titan', artist: 'Björn Barends' },
   },
@@ -65,7 +70,7 @@ export const SETS: DraftableSet[] = [
     mtgpicsSetId: 0,
     status: 'live',
     format: 'Quick Draft',
-    blurb: 'Return to Lorwyn under an eclipse — tribal synergies and moonlight.',
+    blurb: 'Return to the land of light and shadow.',
     art: { cn: '252', card: 'Wistfulness', artist: 'Jesper Ejsing' },
   },
   {
@@ -75,7 +80,7 @@ export const SETS: DraftableSet[] = [
     mtgpicsSetId: 0,
     status: 'live',
     format: 'Flashback Draft',
-    blurb: 'A high-speed race across worlds — Vehicles, Exhaust, and Start your engines.',
+    blurb: "You're in the driver's seat.",
     art: { cn: '212', card: 'Loot, the Pathfinder', artist: 'Ernanda Souza' },
   },
   {
@@ -85,7 +90,7 @@ export const SETS: DraftableSet[] = [
     mtgpicsSetId: 0,
     status: 'live',
     format: 'Quick Draft',
-    blurb: 'Wild-west heists, crimes, and outlaw aggro.',
+    blurb: "It's good to be wanted.",
     art: { cn: '213', card: 'Kellan, the Kid', artist: 'Magali Villeneuve' },
   },
 ];
