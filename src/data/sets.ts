@@ -30,6 +30,18 @@ export interface DraftableSet extends SetConfig {
   blurb: string;
   /** Featured set gets the hero tile + is the default draft. */
   featured?: boolean;
+  /**
+   * Card whose art fronts this set's tile on the landing. To change the art a
+   * set shows, swap `cn` (that card's collector number in this set) — the tile
+   * pulls the stable art crop straight from Scryfall (see `setArtUrl`).
+   */
+  art?: { cn: string; card: string; artist: string };
+}
+
+/** Stable Scryfall art-crop URL for a set's tile art (null if none set). */
+export function setArtUrl(set: DraftableSet): string | null {
+  if (!set.art) return null;
+  return `https://api.scryfall.com/cards/${set.code.toLowerCase()}/${set.art.cn}?format=image&version=art_crop`;
 }
 
 export const SETS: DraftableSet[] = [
@@ -39,6 +51,7 @@ export const SETS: DraftableSet[] = [
     format: 'Premier Draft',
     blurb: "Marvel's mightiest, drafted three packs deep.",
     featured: true,
+    art: { cn: '233', card: 'Thanos, the Mad Titan', artist: 'Björn Barends' },
   },
   {
     code: 'ECL',
@@ -48,6 +61,7 @@ export const SETS: DraftableSet[] = [
     status: 'live',
     format: 'Quick Draft',
     blurb: 'Return to Lorwyn under an eclipse — tribal synergies and moonlight.',
+    art: { cn: '252', card: 'Wistfulness', artist: 'Jesper Ejsing' },
   },
   {
     code: 'DFT',
@@ -57,6 +71,7 @@ export const SETS: DraftableSet[] = [
     status: 'live',
     format: 'Flashback Draft',
     blurb: 'A high-speed race across worlds — Vehicles, Exhaust, and Start your engines.',
+    art: { cn: '212', card: 'Loot, the Pathfinder', artist: 'Ernanda Souza' },
   },
   {
     code: 'OTJ',
@@ -66,6 +81,7 @@ export const SETS: DraftableSet[] = [
     status: 'coming-soon',
     format: 'Quick Draft',
     blurb: 'Wild-west heists and outlaw aggro. Quick Draft returns Jul 21.',
+    art: { cn: '213', card: 'Kellan, the Kid', artist: 'Magali Villeneuve' },
   },
 ];
 

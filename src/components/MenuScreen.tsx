@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useDraft } from '../store';
-import { SETS, type DraftableSet } from '../data/sets';
+import { SETS, setArtUrl, type DraftableSet } from '../data/sets';
 import { useAccount } from '../data/account';
 import { DRAFT_MODES, type DraftMode } from '../types';
 import { ProgressDashboard } from './review/ProgressDashboard';
@@ -84,25 +84,37 @@ function AppNav({
 
 function SetTile({ set, onDraft }: { set: DraftableSet; onDraft: (code: string) => void }) {
   const live = set.status === 'live';
+  const art = setArtUrl(set);
   return (
     <motion.button
-      className={`set-tile${set.featured ? ' set-tile-featured' : ''}${live ? '' : ' set-tile-soon'}`}
+      className={`set-tile${set.featured ? ' set-tile-featured' : ''}${live ? '' : ' set-tile-soon'}${art ? ' has-art' : ''}`}
       onClick={() => live && onDraft(set.code)}
       disabled={!live}
       whileHover={live ? { y: -4 } : undefined}
       aria-label={live ? `Draft ${set.name}` : `${set.name} — coming soon`}
     >
-      <div className="set-tile-top">
-        <span className="set-tile-code">{set.code}</span>
-        <span className={`set-tile-badge${live ? '' : ' set-tile-badge-soon'}`}>
-          {live ? set.format : 'Coming soon'}
-        </span>
-      </div>
-      <div className="set-tile-name">{set.name}</div>
-      <div className="set-tile-blurb">{set.blurb}</div>
-      {live && (
-        <span className="set-tile-cta">{set.featured ? 'Enter Draft' : 'Draft'} →</span>
+      {art && (
+        <img className="set-tile-art" src={art} alt="" loading="lazy" draggable={false} />
       )}
+      <div className="set-tile-scrim" />
+      <div className="set-tile-content">
+        <div className="set-tile-top">
+          <span className="set-tile-code">{set.code}</span>
+          <span className={`set-tile-badge${live ? '' : ' set-tile-badge-soon'}`}>
+            {live ? set.format : 'Coming soon'}
+          </span>
+        </div>
+        <div className="set-tile-name">{set.name}</div>
+        <div className="set-tile-blurb">{set.blurb}</div>
+        <div className="set-tile-foot">
+          {live ? (
+            <span className="set-tile-cta">{set.featured ? 'Enter Draft' : 'Draft'} →</span>
+          ) : (
+            <span />
+          )}
+          {set.art && <span className="set-tile-credit">art: {set.art.artist}</span>}
+        </div>
+      </div>
     </motion.button>
   );
 }
