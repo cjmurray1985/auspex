@@ -4,6 +4,8 @@ import { useDraft } from '../store';
 import { SETS, setArtUrl, type DraftableSet } from '../data/sets';
 import { useAccount } from '../data/account';
 import { DRAFT_MODES, type DraftMode } from '../types';
+import { setMastery, type SetMastery } from '../coach/mastery';
+import { SetMasteryRing, SetMasteryModal } from './SetMastery';
 import { ProgressDashboard } from './review/ProgressDashboard';
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}auspex-logo.png`;
@@ -82,14 +84,32 @@ function AppNav({
   );
 }
 
-function SetTile({ set, onDraft }: { set: DraftableSet; onDraft: (code: string) => void }) {
+function SetTile({
+  set,
+  mastery,
+  onDraft,
+  onOpenMastery,
+}: {
+  set: DraftableSet;
+  mastery: SetMastery;
+  onDraft: (code: string) => void;
+  onOpenMastery: (set: DraftableSet) => void;
+}) {
   const live = set.status === 'live';
   const art = setArtUrl(set);
   return (
-    <motion.button
+    <motion.div
       className={`set-tile${set.featured ? ' set-tile-featured' : ''}${live ? '' : ' set-tile-soon'}${art ? ' has-art' : ''}`}
+      role="button"
+      tabIndex={live ? 0 : -1}
+      aria-disabled={!live}
       onClick={() => live && onDraft(set.code)}
-      disabled={!live}
+      onKeyDown={(e) => {
+        if (live && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onDraft(set.code);
+        }
+      }}
       whileHover={live ? { y: -4 } : undefined}
       aria-label={live ? `Draft ${set.name}` : `${set.name} — coming soon`}
     >
@@ -112,10 +132,20 @@ function SetTile({ set, onDraft }: { set: DraftableSet; onDraft: (code: string) 
           ) : (
             <span />
           )}
-          {set.art && <span className="set-tile-credit">art: {set.art.artist}</span>}
+          <button
+            className="set-tile-ring-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenMastery(set);
+            }}
+            aria-label={`${set.name} set mastery`}
+            title="Set mastery"
+          >
+            <SetMasteryRing pct={mastery.pct} />
+          </button>
         </div>
       </div>
-    </motion.button>
+    </motion.div>
   );
 }
 
@@ -235,9 +265,11 @@ export function MenuScreen() {
   const pausedPhase = useDraft((s) => s.pausedPhase);
   const setName = useDraft((s) => s.setName);
   const profile = useDraft((s) => s.profile);
+  const records = useDraft((s) => s.records);
   const error = useDraft((s) => s.error);
   const account = useAccount((s) => s.profile);
   const [view, setView] = useState<'menu' | 'profile'>('menu');
+  const [masterySet, setMasterySet] = useState<DraftableSet | null>(null);
 
   const signedIn = !!account;
   const hasHistory = signedIn && profile.drafts > 0;
@@ -306,9 +338,23 @@ export function MenuScreen() {
           transition={{ delay: 0.25 }}
         >
           {SETS.map((s) => (
-            <SetTile key={s.code} set={s} onDraft={startDraft} />
+            <SetTile
+              key={s.code}
+              set={s}
+              mastery={setMastery(records, s.code)}
+              onDraft={startDraft}
+              onOpenMastery={setMasterySet}
+            />
           ))}
         </motion.div>
+
+        {masterySet && (
+          <SetMasteryModal
+            setName={masterySet.name}
+            mastery={setMastery(records, masterySet.code)}
+            onClose={() => setMasterySet(null)}
+          />
+        )}
 
         {hasHistory ? (
           <motion.button

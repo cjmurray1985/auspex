@@ -16,6 +16,7 @@ import { botPick, createBot, rollBotTable, type BotState, type Persona } from '.
 import { buildReview } from './coach/review';
 import { appendRecord, loadRecords, recordFromReview } from './coach/persistence';
 import { computeProfile } from './coach/profile';
+import { evaluateSetAchievements } from './data/achievements';
 import { currentProfileId } from './data/account';
 
 interface DraftStore {
@@ -394,7 +395,10 @@ export const useDraft = create<DraftStore>((set, get) => ({
     setTimeout(() => {
       const totalBasics = Object.values(s.basics).reduce((a, b) => a + b, 0);
       const review = buildReview(s.deck, totalBasics, s.picks, s.colorRatings, s.cardPool, s.mode);
-      const records = appendRecord(recordFromReview(review, s.selectedSet.code));
+      // Achievements are about what you DRAFTED (the full pool), not just the
+      // 40-card build, so evaluate against humanPool.
+      const earned = evaluateSetAchievements(s.selectedSet.code, s.humanPool, review.overall);
+      const records = appendRecord(recordFromReview(review, s.selectedSet.code, earned));
       const profile = computeProfile(records);
       set({ review, records, profile, phase: 'grade' });
     }, 2600);
