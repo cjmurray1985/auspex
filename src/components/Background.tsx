@@ -1,6 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useDraft } from '../store';
 import { artForSet, BG_MIN_WIDTH, artUrl, useBgPrefs } from '../data/backgrounds';
+import { prefersReducedMotion } from '../fx/reducedMotion';
+
+// The three.js atrium is decorative and menu-only, so it's code-split — three.js
+// never lands in the draft/build bundle.
+const AtriumScene = lazy(() =>
+  import('./AtriumScene').then((m) => ({ default: m.AtriumScene })),
+);
 
 const ROTATE_MS = 16000;
 // Skip anything narrower than this even if the CDN listing claimed otherwise.
@@ -124,12 +131,23 @@ export function Background() {
   }, [phase]);
 
   if (phase === 'menu') {
+    // Static art shown for reduced-motion users and as the Suspense fallback
+    // while the 3D scene's chunk + texture load (also the WebGL-less fallback).
+    const still = (
+      <div
+        className="bg-academy-img"
+        style={{ backgroundImage: `url(${import.meta.env.BASE_URL}academy-atrium.jpg)` }}
+      />
+    );
     return (
       <div className="bg-root bg-academy" aria-hidden>
-        <div
-          className="bg-academy-img"
-          style={{ backgroundImage: `url(${import.meta.env.BASE_URL}draft-academy-bg.png)` }}
-        />
+        {prefersReducedMotion() ? (
+          still
+        ) : (
+          <Suspense fallback={still}>
+            <AtriumScene />
+          </Suspense>
+        )}
         <div className="bg-academy-scrim" />
       </div>
     );
