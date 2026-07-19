@@ -1,4 +1,4 @@
-import type { RatedCard, Rarity } from '../types';
+import type { DraftMode, RatedCard, Rarity } from '../types';
 import { PACK_SIZE } from './pack';
 
 /**
@@ -32,6 +32,10 @@ export interface Persona {
   signalWeight: number;
   synergyWeight: number;
   raredraftBias: number;
+  /** How much the rare-draft priority fades as the bot commits to colors.
+   *  ~0.1 = barely fades (QD bots snap rares even off-color late); ~0.5 = a
+   *  human that lets off-color rares wheel once committed. */
+  rareFade: number;
   onColorMag: number;
   forced?: Set<string>;
 }
@@ -136,10 +140,11 @@ function makePersona(style: Playstyle, seatIndex: number): Persona {
     // Only strong players read signals (nemedraft's core edge).
     signalWeight: skill,
     synergyWeight: 0.12 + 0.15 * skill,
-    // Rare-drafting on Arena is a UNIVERSAL bot behavior, not a beginner tell:
-    // baseline ~1.0 for everyone (skilled bots rare-draft just as hard). Style
-    // nudges this below. Multiplies RARITY_PRIORITY in scoreCard.
-    raredraftBias: 1.0,
+    // Human table: rares are valued but NOT snapped off-color the way Arena's
+    // QD bots do — so a lower baseline that fades as the drafter commits, which
+    // lets off-color rares wheel (like Premier/paper). Style nudges below.
+    raredraftBias: 0.55,
+    rareFade: 0.5,
     // Stronger players commit harder and cleaner to two colors.
     onColorMag: 2.4 + 1.6 * skill,
   };
@@ -147,7 +152,7 @@ function makePersona(style: Playstyle, seatIndex: number): Persona {
   switch (style) {
     case 'power':
       persona.synergyWeight *= 0.6; // trusts raw card quality
-      persona.raredraftBias = 0.9; // still rare-biased, just leans on quality
+      persona.raredraftBias = 0.45; // leans on quality over shiny rarity
       break;
     case 'forcer': {
       const pair = SEED_PAIRS[seatIndex % SEED_PAIRS.length];
@@ -161,10 +166,10 @@ function makePersona(style: Playstyle, seatIndex: number): Persona {
       break;
     case 'signals':
       persona.signalWeight = Math.max(persona.signalWeight, 0.65);
-      persona.raredraftBias = 0.85; // reads the pack over shiny rarity
+      persona.raredraftBias = 0.4; // reads the pack over shiny rarity
       break;
     case 'raredraft':
-      persona.raredraftBias = 1.4; // the "never pass a rare" seat
+      persona.raredraftBias = 0.95; // the table's rare-chaser
       break;
     case 'aggro':
       break; // handled in scoring (prefers cheap creatures)
@@ -172,8 +177,38 @@ function makePersona(style: Playstyle, seatIndex: number): Persona {
   return persona;
 }
 
-/** Roll a varied table of `count` personas (distinct styles where possible). */
-export function rollBotTable(count: number): Persona[] {
+/**
+ * A single canonical MTGA Quick Draft bot: consistent mid skill, a rigid pick
+ * order (very low noise, no blunders), NO signal adaptation, no synergy/forcing,
+ * and heavy rare-drafting that barely fades — it snaps rares even off-color, the
+ * defining QD behavior. Every quick-mode seat is one of these (bots are alike).
+ */
+function makeQuickBotPersona(): Persona {
+  return {
+    rank: 'Bot',
+    skill: 0.6,
+    style: 'power',
+    styleLabel: 'Quick Draft Bot',
+    noise: 0.12, // near-fixed order; tiny jitter only breaks ties
+    blunderProb: 0,
+    signalWeight: 0, // bots follow a fixed order; they don't read the table
+    synergyWeight: 0,
+    raredraftBias: 1.25, // snaps rares/mythics
+    rareFade: 0.1, // ...even off-color late in the pack
+    onColorMag: 2.2,
+    // Not `forced`, so createBot seeds a color lean from the seat.
+  };
+}
+
+/**
+ * Roll a table of `count` opponents for the chosen environment.
+ *  - 'quick': a pod of identical MTGA Quick Draft bots (rigid, rare-drafting).
+ *  - 'human': a varied human pod (distinct styles where possible).
+ */
+export function rollBotTable(count: number, mode: DraftMode = 'human'): Persona[] {
+  if (mode === 'quick') {
+    return Array.from({ length: count }, () => makeQuickBotPersona());
+  }
   const styleBag = shuffle(STYLES.map((s) => s.style));
   return Array.from({ length: count }, (_, i) =>
     makePersona(styleBag[i % styleBag.length], i),
@@ -245,10 +280,10 @@ function scoreCard(
 
   s += p.synergyWeight * synergyMatches(bot, card);
 
-  // Rare-draft: MTGA bots take rares/mythics far earlier than humans and rarely
-  // pass them, even off-color. Model as a large universal priority that only
-  // slightly fades late — the opposite of the old skill-gated "beginner" tell.
-  s += RARITY_PRIORITY[card.rarity] * p.raredraftBias * (1 - commitment * 0.15);
+  // Rare-draft: QD bots take rares/mythics far earlier than humans and rarely
+  // pass them, even off-color (rareFade ~0.1). Humans value rares but let them
+  // wheel once committed (rareFade ~0.5). Magnitude scales with raredraftBias.
+  s += RARITY_PRIORITY[card.rarity] * p.raredraftBias * (1 - commitment * p.rareFade);
 
   // Fixing: bots value nonbasic mana-fixing lands (rare duals ride the rarity
   // priority above; commons get a flat nudge, larger when they fix a color the

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { DRAFT_MODES } from '../../types';
 import type { CoachProfile, DraftReview } from '../../coach/types';
 import { gradeColor } from '../Card3D';
 import { MomentsList } from './panels';
@@ -56,6 +57,7 @@ export function GuidedReview({
           </div>
           <p className="gr-headline">{review.headline}</p>
           <div className="gr-verdict-badges">
+            <span className="badge">vs {DRAFT_MODES[review.mode].label}</span>
             <ConfidencePill level={review.confidence} />
             {isPB && <span className="pb-badge">NEW PERSONAL BEST</span>}
             {best !== null && !isPB && <span className="badge">Best: {best}/100 · {recordCount} drafts</span>}

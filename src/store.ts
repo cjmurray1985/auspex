@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type {
   ColorPairRating,
+  DraftMode,
   Phase,
   PickRecord,
   RatedCard,
@@ -25,6 +26,9 @@ interface DraftStore {
   error?: string;
   /** The set the player is drafting (or will draft). */
   selectedSet: DraftableSet;
+  /** Draft environment: 'quick' (MTGA QD bots) or 'human' (Human Table Sim).
+   *  Persisted as the default; overridable per draft. */
+  mode: DraftMode;
   setName: string;
   /** Which set's data is currently loaded into `cardPool` (null before init). */
   loadedSetCode: string | null;
@@ -57,9 +61,12 @@ interface DraftStore {
   profile: CoachProfile;
 
   init: () => Promise<void>;
+  /** Set (and persist) the default draft mode. */
+  setMode: (mode: DraftMode) => void;
   /** Enter a draft. Pass a set code to draft that set; defaults to the
-   *  currently selected set. Re-fetches card data when the set changes. */
-  startDraft: (setCode?: string) => Promise<void>;
+   *  currently selected set. Optionally override the mode for this draft.
+   *  Re-fetches card data when the set changes. */
+  startDraft: (setCode?: string, mode?: DraftMode) => Promise<void>;
   /** Back out of an active draft to the menu, keeping the draft resumable. */
   pauseToMenu: () => void;
   /** Return to the paused draft/build phase. */
@@ -75,6 +82,17 @@ interface DraftStore {
 }
 
 export const PICK_SECONDS = 50;
+
+const MODE_KEY = 'auspex:draftMode';
+function loadMode(): DraftMode {
+  try {
+    const m = localStorage.getItem(MODE_KEY);
+    if (m === 'quick' || m === 'human') return m;
+  } catch {
+    /* ignore */
+  }
+  return 'quick'; // default: fidelity to the MTGA Quick Draft bot experience
+}
 
 /** Fetch + build the rated card pool for a set. Shared by init and startDraft. */
 async function loadSetData(code: string) {
@@ -96,6 +114,7 @@ export const useDraft = create<DraftStore>((set, get) => ({
   pausedPhase: null,
   loadingMessage: 'Summoning cards from Scryfall\u2026',
   selectedSet: FEATURED_SET,
+  mode: loadMode(),
   setName: FEATURED_SET.name,
   loadedSetCode: null,
   initStarted: false,
@@ -141,9 +160,21 @@ export const useDraft = create<DraftStore>((set, get) => ({
     }
   },
 
-  startDraft: async (setCode) => {
+  setMode: (mode) => {
+    try {
+      localStorage.setItem(MODE_KEY, mode);
+    } catch {
+      /* ignore */
+    }
+    set({ mode });
+  },
+
+  startDraft: async (setCode, mode) => {
     const state = get();
     const target = getSet(setCode) ?? state.selectedSet;
+    // Resolve the environment for this draft; persist it as the new default.
+    const useMode = mode ?? state.mode;
+    if (useMode !== state.mode) get().setMode(useMode);
     let cardPool = state.cardPool;
 
     // Load the target set's data on demand when switching sets (or on a cold
@@ -174,7 +205,7 @@ export const useDraft = create<DraftStore>((set, get) => ({
     }
 
     const rounds = generateAllPacks(cardPool);
-    const personas = rollBotTable(NUM_SEATS - 1);
+    const personas = rollBotTable(NUM_SEATS - 1, useMode);
     const bots = personas.map((p, i) => createBot(p, i));
     set({
       rounds,
@@ -349,7 +380,7 @@ export const useDraft = create<DraftStore>((set, get) => ({
     // Small theatrical delay before the reveal
     setTimeout(() => {
       const totalBasics = Object.values(s.basics).reduce((a, b) => a + b, 0);
-      const review = buildReview(s.deck, totalBasics, s.picks, s.colorRatings, s.cardPool);
+      const review = buildReview(s.deck, totalBasics, s.picks, s.colorRatings, s.cardPool, s.mode);
       const records = appendRecord(recordFromReview(review, s.selectedSet.code));
       const profile = computeProfile(records);
       set({ review, records, profile, phase: 'grade' });
