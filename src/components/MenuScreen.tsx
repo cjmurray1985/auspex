@@ -49,6 +49,7 @@ function AppNav({
   onProfile: () => void;
 }) {
   const account = useAccount((s) => s.profile);
+  const profile = useDraft((s) => s.profile);
   const initial = account?.name.trim().charAt(0).toUpperCase() || '?';
   return (
     <nav className="app-nav" aria-label="Auspex">
@@ -69,11 +70,29 @@ function AppNav({
         <button
           className={`app-nav-profile${active === 'profile' ? ' is-active' : ''}`}
           onClick={onProfile}
+          title={
+            account
+              ? profile.calibrating
+                ? `${account.name} · Calibrating (${profile.calibrationRemaining} to rank)`
+                : `${account.name} · ${profile.rankLabel}`
+              : 'Sign in'
+          }
         >
           {account ? (
             <>
-              <span className="app-nav-avatar" aria-hidden>{initial}</span>
-              <span className="app-nav-profile-name">{account.name}</span>
+              <span
+                className="app-nav-avatar"
+                aria-hidden
+                style={{ background: profile.calibrating ? undefined : profile.rank.color }}
+              >
+                {initial}
+              </span>
+              <span
+                className="app-nav-elo"
+                style={{ color: profile.calibrating ? 'var(--text-dim)' : profile.rank.color }}
+              >
+                {profile.calibrating ? 'Calibrating' : profile.rating}
+              </span>
             </>
           ) : (
             <span className="app-nav-signin">Sign in</span>
@@ -264,17 +283,10 @@ export function MenuScreen() {
   const resumeDraft = useDraft((s) => s.resumeDraft);
   const pausedPhase = useDraft((s) => s.pausedPhase);
   const setName = useDraft((s) => s.setName);
-  const profile = useDraft((s) => s.profile);
   const records = useDraft((s) => s.records);
   const error = useDraft((s) => s.error);
-  const account = useAccount((s) => s.profile);
   const [view, setView] = useState<'menu' | 'profile'>('menu');
   const [masterySet, setMasterySet] = useState<DraftableSet | null>(null);
-
-  const signedIn = !!account;
-  const hasHistory = signedIn && profile.drafts > 0;
-  const topInsight = profile.insights[0];
-  const topGoal = profile.goals[0];
 
   if (view === 'profile') {
     return <ProfileScreen onBackToDraft={() => setView('menu')} />;
@@ -354,69 +366,6 @@ export function MenuScreen() {
             mastery={setMastery(records, masterySet.code)}
             onClose={() => setMasterySet(null)}
           />
-        )}
-
-        {hasHistory ? (
-          <motion.button
-            className="coach-card"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            onClick={() => setView('profile')}
-          >
-            <div
-              className="coach-card-rating"
-              style={{ borderColor: profile.calibrating ? 'var(--text-dim)' : profile.rank.color }}
-            >
-              <span
-                className="ccr-rank"
-                style={{ color: profile.calibrating ? 'var(--text-dim)' : profile.rank.color }}
-              >
-                {profile.rankLabel}
-              </span>
-              <span className="ccr-num">{profile.calibrating ? `${profile.calibrationRemaining} to rank` : profile.rating}</span>
-              {!profile.calibrating && profile.ratingDelta !== 0 && (
-                <span className="ccr-delta" style={{ color: profile.ratingDelta > 0 ? '#6ad88a' : '#e0a880' }}>
-                  {profile.ratingDelta > 0 ? '▲' : '▼'} {Math.abs(profile.ratingDelta)}
-                </span>
-              )}
-            </div>
-            <div className="coach-card-body">
-              {topInsight && <div className="coach-card-insight">{topInsight}</div>}
-              <div className="coach-card-meta">
-                <span>{profile.drafts} drafts</span>
-                <span>·</span>
-                <span>{profile.streak}🔥 streak</span>
-                <span>·</span>
-                <span>best {profile.personalBest}</span>
-                {topGoal && (
-                  <>
-                    <span>·</span>
-                    <span className="coach-card-goal">Goal: {topGoal.title}</span>
-                  </>
-                )}
-              </div>
-            </div>
-            <span className="coach-card-cta">View your coach →</span>
-          </motion.button>
-        ) : (
-          <motion.button
-            className="coach-card coach-card-signin"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            onClick={() => setView('profile')}
-          >
-            <div className="coach-card-body">
-              <div className="coach-card-insight">
-                {signedIn ? 'Draft to start building your coaching profile.' : 'Sign in to track your rating and coaching history.'}
-              </div>
-              <div className="coach-card-meta">
-                <span>{signedIn ? 'View your profile' : 'Your performance data lives in your profile'}</span>
-              </div>
-            </div>
-            <span className="coach-card-cta">{signedIn ? 'Open profile →' : 'Sign in →'}</span>
-          </motion.button>
         )}
       </main>
     </div>

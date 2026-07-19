@@ -83,9 +83,9 @@ export const SETS: DraftableSet[] = [
     name: 'Outlaws of Thunder Junction',
     mtgpicsCode: 'otj',
     mtgpicsSetId: 0,
-    status: 'coming-soon',
+    status: 'live',
     format: 'Quick Draft',
-    blurb: 'Wild-west heists and outlaw aggro. Quick Draft returns Jul 21.',
+    blurb: 'Wild-west heists, crimes, and outlaw aggro.',
     art: { cn: '213', card: 'Kellan, the Kid', artist: 'Magali Villeneuve' },
   },
 ];
