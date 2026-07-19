@@ -3235,15 +3235,27 @@ select.db-input {
   z-index: 1;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end; /* bottom-align the set messaging over the art */
   gap: 0.5rem;
   height: 100%;
   padding: 1.1rem 1.15rem 1.15rem;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
-.set-tile-content .set-tile-blurb {
-  margin-top: auto;
-  flex: 0 0 auto;
-  color: rgba(232, 236, 245, 0.85);
+.set-tile-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.set-tile-symbol {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  opacity: 0.95;
+}
+.set-tile-featured .set-tile-symbol {
+  width: 32px;
+  height: 32px;
 }
 .set-tile-foot {
   display: flex;
@@ -3258,8 +3270,12 @@ select.db-input {
   white-space: nowrap;
 }
 
-/* Set-mastery ring (on tiles) */
+/* Set-mastery ring (top-right corner of each tile) */
 .set-tile-ring-btn {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  z-index: 2;
   background: none;
   border: none;
   padding: 0;
