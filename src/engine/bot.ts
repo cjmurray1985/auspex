@@ -72,7 +72,32 @@ const RARITY_VALUE: Record<Rarity, number> = {
   mythic: 1.4,
 };
 
+/**
+ * Universal rare-draft priority (0..10 score scale), applied to EVERY bot.
+ *
+ * This models the single most important way MTG Arena's (Quick Draft) bots
+ * diverge from a human pod: they deliberately over-draft rares and mythics,
+ * taking them far earlier than humans and seldom passing them even off-color.
+ * 17Lands measured that *every* rare in a format is picked higher by the bots
+ * than by humans, with 18 rares literally never passed across hundreds of logged
+ * drafts — a deliberate WotC lever to limit rare-drafting and protect pack value
+ * (blog.17lands.com/posts/bot-signals, mtgazone PHYX QD guide). The jump at
+ * `rare` is intentionally large so rares float to the top of the pick order.
+ */
+const RARITY_PRIORITY: Record<Rarity, number> = {
+  common: 0,
+  uncommon: 0.55,
+  rare: 2.6,
+  mythic: 3.2,
+};
+
 const SIGNAL_SCALE = 0.35;
+
+/** WUBRG letters produced by a nonbasic fixing land (excludes basics). */
+function fixingColors(card: RatedCard): string[] {
+  if (!card.typeLine.includes('Land') || card.typeLine.includes('Basic')) return [];
+  return (card.producedMana ?? []).filter((c) => 'WUBRG'.includes(c));
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -111,8 +136,10 @@ function makePersona(style: Playstyle, seatIndex: number): Persona {
     // Only strong players read signals (nemedraft's core edge).
     signalWeight: skill,
     synergyWeight: 0.12 + 0.15 * skill,
-    // Weaker players chase rares/bombs regardless of fit.
-    raredraftBias: 0.55 * (1 - skill),
+    // Rare-drafting on Arena is a UNIVERSAL bot behavior, not a beginner tell:
+    // baseline ~1.0 for everyone (skilled bots rare-draft just as hard). Style
+    // nudges this below. Multiplies RARITY_PRIORITY in scoreCard.
+    raredraftBias: 1.0,
     // Stronger players commit harder and cleaner to two colors.
     onColorMag: 2.4 + 1.6 * skill,
   };
@@ -120,6 +147,7 @@ function makePersona(style: Playstyle, seatIndex: number): Persona {
   switch (style) {
     case 'power':
       persona.synergyWeight *= 0.6; // trusts raw card quality
+      persona.raredraftBias = 0.9; // still rare-biased, just leans on quality
       break;
     case 'forcer': {
       const pair = SEED_PAIRS[seatIndex % SEED_PAIRS.length];
@@ -133,9 +161,10 @@ function makePersona(style: Playstyle, seatIndex: number): Persona {
       break;
     case 'signals':
       persona.signalWeight = Math.max(persona.signalWeight, 0.65);
+      persona.raredraftBias = 0.85; // reads the pack over shiny rarity
       break;
     case 'raredraft':
-      persona.raredraftBias = Math.max(persona.raredraftBias, 0.7);
+      persona.raredraftBias = 1.4; // the "never pass a rare" seat
       break;
     case 'aggro':
       break; // handled in scoring (prefers cheap creatures)
@@ -215,7 +244,21 @@ function scoreCard(
   }
 
   s += p.synergyWeight * synergyMatches(bot, card);
-  s += p.raredraftBias * RARITY_VALUE[card.rarity] * (1 - commitment * 0.5);
+
+  // Rare-draft: MTGA bots take rares/mythics far earlier than humans and rarely
+  // pass them, even off-color. Model as a large universal priority that only
+  // slightly fades late — the opposite of the old skill-gated "beginner" tell.
+  s += RARITY_PRIORITY[card.rarity] * p.raredraftBias * (1 - commitment * 0.15);
+
+  // Fixing: bots value nonbasic mana-fixing lands (rare duals ride the rarity
+  // priority above; commons get a flat nudge, larger when they fix a color the
+  // bot is already in). Keeps dual lands from wheeling too late.
+  const fixes = fixingColors(card);
+  if (fixes.length >= 2) {
+    const fixesCommitted = fixes.some((c) => committed.has(c));
+    s += 0.9 + (fixesCommitted ? 0.7 : 0);
+  }
+
   if (p.style === 'aggro' && card.typeLine.includes('Creature') && card.cmc <= 3) s += 0.6;
 
   s += (Math.random() - 0.5) * p.noise;
