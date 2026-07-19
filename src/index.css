@@ -3139,11 +3139,12 @@ select.db-input {
 }
 
 .set-tile {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  min-height: 190px;
   text-align: left;
-  padding: 1.1rem 1.15rem 1.15rem;
   border-radius: var(--radius);
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: linear-gradient(160deg, var(--bg-panel-2), var(--bg-panel));
@@ -3155,16 +3156,73 @@ select.db-input {
   border-color: rgba(212, 175, 106, 0.5);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.36), 0 0 0 1px rgba(212, 175, 106, 0.2);
 }
+.set-tile:hover:not(:disabled) .set-tile-art {
+  transform: scale(1.05);
+}
 .set-tile-featured {
   grid-column: span 2;
+  min-height: 230px;
   border-color: rgba(212, 175, 106, 0.4);
-  background:
-    radial-gradient(120% 140% at 100% 0%, rgba(212, 175, 106, 0.14), transparent 60%),
-    linear-gradient(160deg, var(--bg-panel-2), var(--bg-panel));
 }
 .set-tile-soon {
   cursor: not-allowed;
-  opacity: 0.55;
+}
+
+/* Unique per-set card art (from Scryfall), fronting the tile. */
+.set-tile-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+  transition: transform 0.4s ease;
+}
+.set-tile-soon .set-tile-art {
+  filter: grayscale(0.6) brightness(0.8);
+}
+/* Dark scrim so the code/name/blurb stay legible over the art. */
+.set-tile-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 14, 26, 0.15) 0%,
+    rgba(10, 14, 26, 0.5) 45%,
+    rgba(10, 14, 26, 0.92) 100%
+  );
+}
+.set-tile-featured .set-tile-scrim {
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(212, 175, 106, 0.18), transparent 55%),
+    linear-gradient(180deg, rgba(10, 14, 26, 0.1) 0%, rgba(10, 14, 26, 0.45) 40%, rgba(10, 14, 26, 0.9) 100%);
+}
+.set-tile-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 1.1rem 1.15rem 1.15rem;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+.set-tile-content .set-tile-blurb {
+  margin-top: auto;
+  flex: 0 0 auto;
+  color: rgba(232, 236, 245, 0.85);
+}
+.set-tile-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.set-tile-credit {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .set-tile-top {
