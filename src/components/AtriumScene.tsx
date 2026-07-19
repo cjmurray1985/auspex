@@ -5,13 +5,14 @@ import { prefersReducedMotion } from '../fx/reducedMotion';
 /**
  * Ambient 3D "atrium" environment for the Draft Academy homepage.
  *
- * A single flat piece of art is given real 2.5D depth two ways at once:
+ * A single flat piece of art is given life two ways at once:
  *  1. A depth-parallax shader on the image plane. We synthesize a depth field
  *     (the central archway recedes to a vanishing point; the foreground floor,
  *     railings and pillars sit near) and offset the texture sampling by the
  *     pointer/gyro so near elements slide further than far ones.
- *  2. A layer of drifting dust motes (additive GL points) scattered in front of
- *     the art, each with its own parallax depth, so the whole scene feels alive.
+ *  2. An ambient pulsating glow: the shader isolates the emissive parts of the
+ *     art (bright + cyan-blue holographic panels, runes, the scrying circle) and
+ *     blooms them with a slow, spatially-varied pulse so the light breathes.
  *
  * Design constraints (see agency rules): decorative + menu-only, lazy-loaded so
  * three.js never lands in the draft/build bundle, and a calm, static first-class
@@ -20,7 +21,6 @@ import { prefersReducedMotion } from '../fx/reducedMotion';
 
 const PLANE_DIST = 6;
 const FOV = 45;
-const DUST_COUNT = 320;
 /** Max texture-sample shift (fraction of UV) at full pointer deflection. */
 const PARALLAX_AMP = 0.028;
 
@@ -63,6 +63,16 @@ const FRAG = /* glsl */ `
     return clamp(radial * 0.7 + lower * 0.45, 0.0, 1.0);
   }
 
+  float lum(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+  // How "emissive" a texel reads: generally bright OR cyan-blue (the glowing
+  // holographic panels, runes and scrying circle), 0..1.
+  float emissiveMask(vec3 c) {
+    float bright = smoothstep(0.5, 0.92, lum(c));
+    float cyan = smoothstep(0.05, 0.42, c.b - (c.r + c.g) * 0.35);
+    return clamp(max(bright, cyan), 0.0, 1.0);
+  }
+
   void main() {
     vec2 uv = coverUv(vUv);
     uv = (uv - 0.5) / uZoom + 0.5;
@@ -74,59 +84,45 @@ const FRAG = /* glsl */ `
 
     vec3 col = texture2D(uTex, uv).rgb;
 
-    // Arcane pulse: gently breathe the foresight-blue glow low-centre where the
-    // scrying circle sits, so the chamber feels lit from within.
-    float pulse = 0.5 + 0.5 * sin(uTime * 0.6);
-    float glowMask = smoothstep(0.42, 0.0, distance(uv, vec2(0.5, 0.24)));
-    col += vec3(0.16, 0.34, 0.62) * glowMask * pulse * 0.09;
+    // Lift exposure — the chamber read too dark behind the scrim.
+    col = pow(col, vec3(0.9)); // gentle shadow/midtone lift
+    col *= 1.16;               // overall gain
 
-    // Soft vignette to fuse the edges into the surrounding scrim.
-    float vig = smoothstep(1.15, 0.35, distance(vUv, vec2(0.5)));
-    col *= mix(0.72, 1.0, vig);
+    // --- Ambient pulsating glow on the lit elements ------------------------
+    // Ring-kernel bloom of ONLY the emissive parts, so the lights breathe while
+    // the rest of the chamber stays calm. Two radii for a soft halo.
+    float texel = 0.0016;
+    vec3 glow = vec3(0.0);
+    const int TAPS = 12;
+    for (int i = 0; i < TAPS; i++) {
+      float a = (float(i) / float(TAPS)) * 6.2831853;
+      vec2 dir = vec2(cos(a), sin(a));
+      vec3 c1 = texture2D(uTex, clamp(uv + dir * texel * 2.2, 0.0015, 0.9985)).rgb;
+      vec3 c2 = texture2D(uTex, clamp(uv + dir * texel * 4.8, 0.0015, 0.9985)).rgb;
+      glow += c1 * emissiveMask(c1) * 0.66;
+      glow += c2 * emissiveMask(c2) * 0.34;
+    }
+    glow /= float(TAPS);
+
+    // Spatially-varied pulse so different lamps breathe out of sync.
+    float phase = dot(uv, vec2(9.0, 14.0));
+    float pulse = 0.6 + 0.4 * sin(uTime * 0.9 + phase);
+    float pulseSlow = 0.7 + 0.3 * sin(uTime * 0.45 + phase * 0.5);
+
+    // Boost the emissive texels in place + add the bloom halo, both pulsing.
+    float selfMask = emissiveMask(col);
+    col += col * selfMask * pulse * 0.55;
+    col += glow * (1.1 + pulse) * pulseSlow;
+
+    // Foresight-blue breathing over the low-centre scrying circle.
+    float circleMask = smoothstep(0.42, 0.0, distance(uv, vec2(0.5, 0.24)));
+    col += vec3(0.16, 0.34, 0.62) * circleMask * pulseSlow * 0.12;
+
+    // Very soft vignette — fuse the edges without crushing the scene.
+    float vig = smoothstep(1.2, 0.45, distance(vUv, vec2(0.5)));
+    col *= mix(0.9, 1.0, vig);
 
     gl_FragColor = vec4(col, 1.0);
-  }
-`;
-
-const DUST_VERT = /* glsl */ `
-  attribute float aDepth;   // 0 = near, 1 = far
-  attribute float aPhase;
-  attribute float aSize;
-  uniform float uTime;
-  uniform vec2 uPointer;
-  uniform float uPixelRatio;
-  varying float vAlpha;
-
-  void main() {
-    vec3 p = position;
-    // Slow updraft with sideways wander; wrap within the volume height.
-    float rise = mod(aPhase * 6.2831 + uTime * 0.06, 4.0) - 2.0;
-    p.y += rise;
-    p.x += sin(uTime * 0.15 + aPhase * 6.2831) * 0.18;
-
-    vec4 mv = modelViewMatrix * vec4(p, 1.0);
-    gl_Position = projectionMatrix * mv;
-
-    // Depth-scaled parallax in clip space: near motes (aDepth→0) move most.
-    gl_Position.xy += uPointer * vec2(0.9, 0.55) * (1.0 - aDepth) * 0.16 * gl_Position.w;
-
-    gl_PointSize = aSize * uPixelRatio * (2.6 / -mv.z) * 34.0;
-
-    float twinkle = 0.55 + 0.45 * sin(uTime * 1.3 + aPhase * 12.0);
-    vAlpha = twinkle * (0.35 + 0.4 * (1.0 - aDepth));
-  }
-`;
-
-const DUST_FRAG = /* glsl */ `
-  precision mediump float;
-  varying float vAlpha;
-  void main() {
-    float d = length(gl_PointCoord - 0.5);
-    float a = smoothstep(0.5, 0.0, d) * vAlpha;
-    if (a < 0.01) discard;
-    // Warm-gold core fading to foresight blue at the rim.
-    vec3 col = mix(vec3(0.55, 0.72, 1.0), vec3(1.0, 0.86, 0.55), smoothstep(0.5, 0.0, d));
-    gl_FragColor = vec4(col, a);
   }
 `;
 
@@ -177,43 +173,6 @@ export function AtriumScene({ src }: { src?: string }) {
     plane.position.z = -PLANE_DIST;
     scene.add(plane);
 
-    // ---- Dust motes --------------------------------------------------------
-    const depths = new Float32Array(DUST_COUNT);
-    const phases = new Float32Array(DUST_COUNT);
-    const sizes = new Float32Array(DUST_COUNT);
-    const positions = new Float32Array(DUST_COUNT * 3);
-    for (let i = 0; i < DUST_COUNT; i++) {
-      const depth = Math.random();
-      depths[i] = depth;
-      phases[i] = Math.random();
-      sizes[i] = 0.5 + Math.random() * 1.2;
-      // Nearer motes ride closer to the camera; spread wide so pans stay full.
-      const z = -0.6 - depth * (PLANE_DIST - 1.2);
-      positions[i * 3] = (Math.random() - 0.5) * 9;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 6;
-      positions[i * 3 + 2] = z;
-    }
-    const dustGeo = new THREE.BufferGeometry();
-    dustGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    dustGeo.setAttribute('aDepth', new THREE.BufferAttribute(depths, 1));
-    dustGeo.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
-    dustGeo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
-    const dustUniforms = {
-      uTime: { value: 0 },
-      uPointer: uniforms.uPointer,
-      uPixelRatio: { value: dpr },
-    };
-    const dustMat = new THREE.ShaderMaterial({
-      vertexShader: DUST_VERT,
-      fragmentShader: DUST_FRAG,
-      uniforms: dustUniforms,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    });
-    const dust = new THREE.Points(dustGeo, dustMat);
-    scene.add(dust);
-
     // ---- Sizing (fill the frustum at the plane's distance, cover the art) --
     const resize = () => {
       const w = host.clientWidth || window.innerWidth;
@@ -263,7 +222,6 @@ export function AtriumScene({ src }: { src?: string }) {
     const tick = () => {
       const t = clock.getElapsedTime();
       uniforms.uTime.value = t;
-      dustUniforms.uTime.value = t;
       // Ease the pointer toward its target for buttery parallax.
       uniforms.uPointer.value.lerp(pointerTarget, 0.045);
       // Slow ambient breathing so the scene drifts with no input.
@@ -287,8 +245,6 @@ export function AtriumScene({ src }: { src?: string }) {
       renderer.domElement.removeEventListener('webglcontextlost', onContextLost);
       planeGeo.dispose();
       planeMat.dispose();
-      dustGeo.dispose();
-      dustMat.dispose();
       uniforms.uTex.value?.dispose();
       renderer.dispose();
       if (renderer.domElement.parentNode === host) host.removeChild(renderer.domElement);

@@ -12,9 +12,10 @@ const seventeenLandsProxy = {
 }
 
 export default defineConfig({
-  // Served from a project subpath on GitHub Pages (cjmurray1985.github.io/preordain/);
-  // root '/' everywhere else (dev, preview, custom domains).
-  base: process.env.GITHUB_PAGES ? '/preordain/' : '/',
+  // On GitHub Pages the platform lives at cjmurray1985.github.io/auspex/ and the
+  // Draft Academy experience is a folder within it (…/auspex/draft-academy/).
+  // Root '/' everywhere else (dev, preview, custom domains).
+  base: process.env.GITHUB_PAGES ? '/auspex/draft-academy/' : '/',
   plugins: [react()],
   server: { proxy: seventeenLandsProxy },
   preview: { proxy: seventeenLandsProxy },

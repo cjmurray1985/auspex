@@ -123,12 +123,12 @@ body {
   background:
     linear-gradient(
       180deg,
-      rgba(5, 7, 15, 0.62) 0%,
-      rgba(5, 7, 15, 0.32) 30%,
-      rgba(5, 7, 15, 0.45) 62%,
-      rgba(5, 7, 15, 0.82) 100%
+      rgba(5, 7, 15, 0.5) 0%,
+      rgba(5, 7, 15, 0.2) 30%,
+      rgba(5, 7, 15, 0.32) 62%,
+      rgba(5, 7, 15, 0.74) 100%
     ),
-    radial-gradient(ellipse 80% 60% at 50% 26%, rgba(5, 7, 15, 0.45), transparent 70%);
+    radial-gradient(ellipse 80% 60% at 50% 26%, rgba(5, 7, 15, 0.3), transparent 70%);
 }
 
 .bg-layer {
