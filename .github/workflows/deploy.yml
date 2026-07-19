@@ -40,13 +40,34 @@ jobs:
         env:
           GITHUB_PAGES: 'true'
 
+      - name: Assemble site (Draft Academy under /draft-academy/)
+        run: |
+          rm -rf _site
+          mkdir -p _site/draft-academy
+          cp -r dist/* _site/draft-academy/
+          cat > _site/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <title>Auspex</title>
+              <meta http-equiv="refresh" content="0; url=./draft-academy/" />
+              <link rel="canonical" href="./draft-academy/" />
+              <link rel="icon" type="image/png" href="./draft-academy/auspex-logo.png" />
+            </head>
+            <body style="background:#05070f">
+              <a href="./draft-academy/">Enter the Draft Academy</a>
+            </body>
+          </html>
+          EOF
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: _site
 
       - name: Deploy
         id: deployment
