@@ -318,10 +318,18 @@ export function MenuScreen() {
             transition={{ delay: 0.35 }}
             onClick={() => setView('profile')}
           >
-            <div className="coach-card-rating" style={{ borderColor: profile.rank.color }}>
-              <span className="ccr-rank" style={{ color: profile.rank.color }}>{profile.rank.name}</span>
-              <span className="ccr-num">{profile.rating}</span>
-              {profile.ratingDelta !== 0 && (
+            <div
+              className="coach-card-rating"
+              style={{ borderColor: profile.calibrating ? 'var(--text-dim)' : profile.rank.color }}
+            >
+              <span
+                className="ccr-rank"
+                style={{ color: profile.calibrating ? 'var(--text-dim)' : profile.rank.color }}
+              >
+                {profile.rankLabel}
+              </span>
+              <span className="ccr-num">{profile.calibrating ? `${profile.calibrationRemaining} to rank` : profile.rating}</span>
+              {!profile.calibrating && profile.ratingDelta !== 0 && (
                 <span className="ccr-delta" style={{ color: profile.ratingDelta > 0 ? '#6ad88a' : '#e0a880' }}>
                   {profile.ratingDelta > 0 ? '▲' : '▼'} {Math.abs(profile.ratingDelta)}
                 </span>

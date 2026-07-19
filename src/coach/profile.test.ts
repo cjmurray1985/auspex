@@ -92,7 +92,9 @@ describe('rankAtRating (DA-141)', () => {
     expect(rankAtRating(999).name).toBe('Novice');
     expect(rankAtRating(1000).name).toBe('Apprentice');
     expect(rankAtRating(2300).name).toBe('Master Drafter');
-    expect(rankAtRating(9999).name).toBe('Master Drafter');
+    expect(rankAtRating(2449).name).toBe('Master Drafter');
+    expect(rankAtRating(2450).name).toBe('Oracle');
+    expect(rankAtRating(9999).name).toBe('Oracle');
   });
 
   it('detects a rank-up as a threshold crossing', () => {
@@ -135,5 +137,42 @@ describe('habit → weekly goal mapping (DA-122)', () => {
     const dims = goals.map((g) => dimOf(g.id));
     expect(new Set(dims).size).toBe(dims.length); // no dimension targeted twice
     expect(dims.filter((d) => d === 'card-eval').length).toBeLessThanOrEqual(1);
+  });
+});
+
+describe('calibration + divisions (PRE-49 follow-up)', () => {
+  it('withholds a rank until three drafts are complete', () => {
+    const p1 = computeProfile([rec(80)]);
+    expect(p1.calibrating).toBe(true);
+    expect(p1.calibrationRemaining).toBe(2);
+    expect(p1.rankLabel).toBe('Calibrating');
+
+    const p2 = computeProfile([rec(80), rec(80)]);
+    expect(p2.calibrating).toBe(true);
+    expect(p2.calibrationRemaining).toBe(1);
+
+    const p3 = computeProfile([rec(80), rec(80), rec(80)]);
+    expect(p3.calibrating).toBe(false);
+    expect(p3.calibrationRemaining).toBe(0);
+    expect(p3.rankLabel).not.toBe('Calibrating');
+  });
+
+  it('places on the average of the first three, not a single hot draft', () => {
+    // A 95 then two mediocre drafts → placement on the average, not the spike.
+    const p = computeProfile([rec(95), rec(60), rec(55)]);
+    expect(p.rating).toBe(1750); // (95+60+55)/3 * 25
+    expect(p.rank.name).toBe('Sharpshooter'); // not Expert off the lone 95
+  });
+
+  it('assigns within-rank divisions so there is always a next step', () => {
+    const p = computeProfile([rec(80), rec(80), rec(80)]); // 2000 → Expert, band floor
+    expect(p.rating).toBe(2000);
+    expect(p.rankDivision).toBe(4);
+    expect(p.rankLabel).toBe('Expert IV');
+  });
+
+  it('has an apex rank above Master Drafter', () => {
+    expect(rankAtRating(2450).name).toBe('Oracle');
+    expect(rankAtRating(2450).min).toBeGreaterThan(rankAtRating(2300).min);
   });
 });

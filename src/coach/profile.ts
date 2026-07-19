@@ -29,7 +29,16 @@ const RANKS: CoachRank[] = [
   { name: 'Sharpshooter', color: '#7fd6d0', min: 1700 },
   { name: 'Expert', color: '#8ab6ff', min: 2000 },
   { name: 'Master Drafter', color: '#ff8a4c', min: 2300 },
+  // Apex: sustained near-perfect decision quality (~grade 98 held over drafts).
+  // Deliberately brutal so even Experts always have a summit to climb toward.
+  { name: 'Oracle', color: '#c9a3ff', min: 2450 },
 ];
+
+/** Drafts a new player completes before a rank is assigned (placement). */
+export const CALIBRATION_DRAFTS = 3;
+
+/** Roman numerals for the four within-rank divisions (IV lowest → I highest). */
+const DIVISION_NUMERALS = ['', 'I', 'II', 'III', 'IV'];
 
 const DIM_LABELS: Record<CategoryKey, string> = {
   'card-eval': 'Card Evaluation',
@@ -79,7 +88,11 @@ export function rankAtRating(rating: number): CoachRank {
   return rank;
 }
 
-function rankFor(rating: number): { rank: CoachRank; next?: CoachRank } {
+/**
+ * Rank + which division (1..4, I highest) the rating sits in within that rank's
+ * band. The apex rank has no next tier, so it has no division.
+ */
+function rankInfo(rating: number): { rank: CoachRank; next?: CoachRank; division: number } {
   let rank = RANKS[0];
   let next: CoachRank | undefined;
   for (let i = 0; i < RANKS.length; i++) {
@@ -88,15 +101,33 @@ function rankFor(rating: number): { rank: CoachRank; next?: CoachRank } {
       next = RANKS[i + 1];
     }
   }
-  return { rank, next };
+  let division = 0; // 0 = no division (apex rank)
+  if (next) {
+    const span = next.min - rank.min || 1;
+    const p = Math.max(0, Math.min(1, (rating - rank.min) / span));
+    // p near 0 → division IV (just entered); p near 1 → division I (about to promote)
+    division = Math.min(4, Math.max(1, 4 - Math.floor(p * 4)));
+  }
+  return { rank, next, division };
 }
 
+/**
+ * The rating ladder. During the calibration window the value is the stable
+ * running average of grades so far (so one hot/cold draft can't over- or
+ * under-place a new drafter); afterwards it's the recency-weighted EWMA.
+ */
 function ratingSeries(records: DraftRecord[]): number[] {
   const series: number[] = [];
   let r = 0;
+  let calSum = 0;
   records.forEach((rec, i) => {
     const target = rec.overall * RATING_SCALE;
-    r = i === 0 ? target : RATING_ALPHA * target + (1 - RATING_ALPHA) * r;
+    if (i < CALIBRATION_DRAFTS) {
+      calSum += target;
+      r = calSum / (i + 1);
+    } else {
+      r = RATING_ALPHA * target + (1 - RATING_ALPHA) * r;
+    }
     series.push(Math.round(r));
   });
   return series;
@@ -276,7 +307,14 @@ export function computeProfile(records: DraftRecord[]): CoachProfile {
   const rating = series[series.length - 1] ?? 0;
   const peakRating = series.length ? Math.max(...series) : 0;
   const ratingDelta = series.length >= 2 ? series[series.length - 1] - series[series.length - 2] : 0;
-  const { rank, next } = rankFor(rating);
+  const { rank, next, division } = rankInfo(rating);
+  const calibrating = records.length < CALIBRATION_DRAFTS;
+  const calibrationRemaining = Math.max(0, CALIBRATION_DRAFTS - records.length);
+  const rankLabel = calibrating
+    ? 'Calibrating'
+    : division
+      ? `${rank.name} ${DIVISION_NUMERALS[division]}`
+      : rank.name;
   const { current: streak, best: bestStreak } = improvingStreak(records);
   const withData = records.filter((r) => Object.keys(r.categories).length > 0);
   const dims = dimensions(withData);
@@ -290,6 +328,10 @@ export function computeProfile(records: DraftRecord[]): CoachProfile {
     ratingDelta,
     rank,
     nextRank: next,
+    rankLabel,
+    rankDivision: division || undefined,
+    calibrating,
+    calibrationRemaining,
     ratingHistory: series,
     personalBest: records.length ? Math.max(...records.map((r) => r.overall)) : 0,
     streak,

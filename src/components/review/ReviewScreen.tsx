@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { DRAFT_MODES } from '../../types';
 import { useDraft } from '../../store';
 import { fx } from '../../fx/fx';
-import { rankAtRating } from '../../coach/profile';
+import { rankAtRating, CALIBRATION_DRAFTS } from '../../coach/profile';
 import { gradeColor } from '../Card3D';
 import { EquityChart, CommitmentChart } from './charts';
 import { ReplayPanel } from './ReplayPanel';
@@ -94,7 +94,9 @@ export function ReviewScreen() {
 
   // A real rank-up: this draft pushed the rating across a rank threshold.
   const hist = profile?.ratingHistory ?? [];
+  // Only celebrate rank-ups once the player is out of calibration (placed).
   const rankedUp =
+    profile.drafts > CALIBRATION_DRAFTS &&
     hist.length >= 2 &&
     rankAtRating(hist[hist.length - 1]).min > rankAtRating(hist[hist.length - 2]).min;
 
@@ -159,12 +161,24 @@ export function ReviewScreen() {
             <ConfidencePill level={review.confidence} />
             {isPB && <span className="pb-badge">NEW PERSONAL BEST</span>}
             {best !== null && !isPB && <span className="badge">Best: {best}/100 · {records.length} drafts</span>}
-            <span className="rating-chip" style={{ borderColor: profile.rank.color, color: profile.rank.color }}>
-              {profile.rank.name} · {profile.rating}
-              {profile.ratingDelta !== 0 && (
-                <b style={{ color: profile.ratingDelta > 0 ? '#6ad88a' : '#e0a880' }}>
-                  {' '}{profile.ratingDelta > 0 ? '+' : ''}{profile.ratingDelta}
-                </b>
+            <span
+              className="rating-chip"
+              style={{
+                borderColor: profile.calibrating ? 'var(--text-dim)' : profile.rank.color,
+                color: profile.calibrating ? 'var(--text-dim)' : profile.rank.color,
+              }}
+            >
+              {profile.calibrating ? (
+                `Calibrating · ${profile.calibrationRemaining} to rank`
+              ) : (
+                <>
+                  {profile.rankLabel} · {profile.rating}
+                  {profile.ratingDelta !== 0 && (
+                    <b style={{ color: profile.ratingDelta > 0 ? '#6ad88a' : '#e0a880' }}>
+                      {' '}{profile.ratingDelta > 0 ? '+' : ''}{profile.ratingDelta}
+                    </b>
+                  )}
+                </>
               )}
             </span>
           </div>
