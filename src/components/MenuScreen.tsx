@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useDraft } from '../store';
-import { SETS, setArtUrl, setSymbolUrl, type DraftableSet } from '../data/sets';
+import { SETS, getSet, setArtUrl, setSymbolUrl, type DraftableSet } from '../data/sets';
 import { useAccount } from '../data/account';
 import { DRAFT_MODES, type DraftMode } from '../types';
 import { setMastery, type SetMastery } from '../coach/mastery';
-import { SetMasteryRing, SetMasteryModal } from './SetMastery';
+import { SetMasteryRing, SetMasteryModal, SetMasteryPanel } from './SetMastery';
 import { ProgressDashboard } from './review/ProgressDashboard';
+import { navigate, useSubPath } from '../router';
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}auspex-logo.png`;
 const MODES: DraftMode[] = ['quick', 'human'];
@@ -51,20 +52,17 @@ function AppNav({
   const account = useAccount((s) => s.profile);
   const profile = useDraft((s) => s.profile);
   const initial = account?.name.trim().charAt(0).toUpperCase() || '?';
+  const sectionLabel = active === 'profile' ? 'Profile' : 'Draft Academy';
   return (
     <nav className="app-nav" aria-label="Auspex">
-      <button className="app-nav-brand" onClick={onDraft} aria-label="Auspex home">
-        <img className="app-nav-logo" src={LOGO_SRC} alt="" width={28} height={28} />
-        <span className="app-nav-wordmark">Auspex</span>
-      </button>
+      <div className="app-nav-brand">
+        <button className="app-nav-logo-btn" onClick={onDraft} aria-label="Auspex home">
+          <img className="app-nav-logo" src={LOGO_SRC} alt="" width={30} height={30} />
+        </button>
+        <span className="app-nav-section">{sectionLabel}</span>
+      </div>
 
       <div className="app-nav-links">
-        <button
-          className={`app-nav-link${active === 'draft' ? ' is-active' : ''}`}
-          onClick={onDraft}
-        >
-          Draft Academy
-        </button>
         <span className="app-nav-link is-soon">Puzzles<em>soon</em></span>
         <span className="app-nav-link is-soon">Lessons<em>soon</em></span>
         <button
@@ -107,13 +105,13 @@ function SetTile({
   set,
   mastery,
   ringDelay,
-  onDraft,
+  onOpen,
   onOpenMastery,
 }: {
   set: DraftableSet;
   mastery: SetMastery;
   ringDelay: number;
-  onDraft: (code: string) => void;
+  onOpen: (code: string) => void;
   onOpenMastery: (set: DraftableSet) => void;
 }) {
   const live = set.status === 'live';
@@ -124,15 +122,15 @@ function SetTile({
       role="button"
       tabIndex={live ? 0 : -1}
       aria-disabled={!live}
-      onClick={() => live && onDraft(set.code)}
+      onClick={() => live && onOpen(set.code)}
       onKeyDown={(e) => {
         if (live && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();
-          onDraft(set.code);
+          onOpen(set.code);
         }
       }}
       whileHover={live ? { y: -4 } : undefined}
-      aria-label={live ? `Draft ${set.name}` : `${set.name} — coming soon`}
+      aria-label={live ? `Open ${set.name}` : `${set.name} — coming soon`}
     >
       {art && (
         <img className="set-tile-art" src={art} alt="" loading="lazy" draggable={false} />
@@ -280,15 +278,108 @@ function ProfileScreen({ onBackToDraft }: { onBackToDraft: () => void }) {
   );
 }
 
-export function MenuScreen() {
+/** A set's own page: leads with the draft CTA, then the player's mastery for
+ *  that set. Reached via a set tile or a direct link (…/draft-academy/msh/). */
+function SetLandingPage({
+  set,
+  onHome,
+  onProfile,
+}: {
+  set: DraftableSet;
+  onHome: () => void;
+  onProfile: () => void;
+}) {
   const startDraft = useDraft((s) => s.startDraft);
   const records = useDraft((s) => s.records);
   const error = useDraft((s) => s.error);
+  const mastery = setMastery(records, set.code);
+  const live = set.status === 'live';
+  const art = setArtUrl(set);
+
+  return (
+    <div className="menu-shell">
+      <AppNav active="draft" onDraft={onHome} onProfile={onProfile} />
+
+      <main className="set-page">
+        <button className="set-page-back" onClick={onHome}>
+          <span aria-hidden>←</span> Draft Academy
+        </button>
+
+        <motion.header
+          className={`set-page-hero${art ? ' has-art' : ''}`}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+          {art && <img className="set-page-hero-art" src={art} alt="" draggable={false} />}
+          <div className="set-page-hero-scrim" />
+          <div className="set-page-hero-body">
+            <img className="set-page-symbol" src={setSymbolUrl(set)} alt="" draggable={false} />
+            <div className="experience-lockup">Draft Academy</div>
+            <h1 className="set-page-title">{set.name}</h1>
+            <div className={`set-tile-badge${live ? '' : ' set-tile-badge-soon'}`}>
+              {live ? set.format : 'Coming soon'}
+            </div>
+            <p className="set-page-blurb">{set.blurb}</p>
+            {error && <div className="da-error">{error}</div>}
+            <button
+              className="btn-primary set-page-cta"
+              disabled={!live}
+              onClick={() => live && startDraft(set.code)}
+            >
+              {live ? 'Start draft' : 'Coming soon'}
+            </button>
+          </div>
+        </motion.header>
+
+        <motion.section
+          className="set-page-progress"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12, duration: 0.5, ease: 'easeOut' }}
+        >
+          <header className="set-page-progress-head">
+            <div>
+              <div className="mastery-modal-eyebrow">Your progress</div>
+              <h2 className="set-page-progress-title">Set Mastery</h2>
+            </div>
+            <div className="mastery-modal-pct">
+              <SetMasteryRing pct={mastery.pct} size={64} delay={0.15} />
+              <span>
+                {mastery.achievementsEarned}/{mastery.achievementsTotal} achievements ·{' '}
+                {mastery.pairsMastered}/10 pairs ·{' '}
+                {mastery.drafts} draft{mastery.drafts === 1 ? '' : 's'}
+              </span>
+            </div>
+          </header>
+          <SetMasteryPanel mastery={mastery} />
+        </motion.section>
+      </main>
+    </div>
+  );
+}
+
+export function MenuScreen() {
+  const records = useDraft((s) => s.records);
+  const error = useDraft((s) => s.error);
+  const subPath = useSubPath();
   const [view, setView] = useState<'menu' | 'profile'>('menu');
   const [masterySet, setMasterySet] = useState<DraftableSet | null>(null);
 
   if (view === 'profile') {
     return <ProfileScreen onBackToDraft={() => setView('menu')} />;
+  }
+
+  // A set sub-path (…/msh/) renders that set's own page.
+  const routedSet = getSet(subPath);
+  if (routedSet) {
+    return (
+      <SetLandingPage
+        set={routedSet}
+        onHome={() => navigate('')}
+        onProfile={() => setView('profile')}
+      />
+    );
   }
 
   return (
@@ -327,7 +418,7 @@ export function MenuScreen() {
               set={s}
               mastery={setMastery(records, s.code)}
               ringDelay={0.7 + i * 0.15}
-              onDraft={startDraft}
+              onOpen={(code) => navigate(code.toLowerCase())}
               onOpenMastery={setMasterySet}
             />
           ))}
