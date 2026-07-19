@@ -2477,20 +2477,63 @@ select.db-input {
 /* achievements */
 .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0.6rem; }
 .ach-card {
+  position: relative;
+  overflow: hidden;
   display: flex;
   gap: 0.7rem;
   align-items: center;
+  min-height: 92px;
   padding: 0.7rem 0.9rem;
   border-radius: 10px;
   background: rgba(19, 22, 36, 0.55);
   border: 1px solid rgba(58, 65, 102, 0.4);
-  opacity: 0.5;
+  opacity: 0.55;
 }
 .ach-card.earned { opacity: 1; border-color: rgba(212, 175, 106, 0.5); background: rgba(212, 175, 106, 0.08); }
 .ach-medal { font-size: 1.6rem; color: var(--text-dim); }
-.ach-card.earned .ach-medal { color: var(--gold-bright); filter: drop-shadow(0 0 8px rgba(212, 175, 106, 0.5)); }
 .ach-name { font-weight: 700; font-size: 0.88rem; }
 .ach-desc { font-size: 0.74rem; color: var(--text-dim); line-height: 1.35; }
+
+/* earned achievements read as a small trophy: the relevant card's art fills
+   the tile, a legibility scrim anchors the name, and a gold check confirms it. */
+.ach-card.earned.has-art {
+  padding: 0;
+  align-items: flex-end;
+  background-size: cover;
+  background-position: center 22%;
+  border-color: rgba(212, 175, 106, 0.65);
+}
+.ach-card.earned.has-art.unique { border-color: var(--gold-bright); }
+.ach-card.earned.has-art .ach-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 8, 16, 0.05) 35%, rgba(6, 8, 16, 0.55) 70%, rgba(6, 8, 16, 0.9) 100%);
+}
+.ach-card.earned.has-art .ach-name {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.92rem;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95);
+}
+.ach-check {
+  position: absolute;
+  z-index: 2;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  width: 21px;
+  height: 21px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--gold-bright);
+  color: #1a1205;
+  font-size: 0.8rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
 
 /* ---------- coaching home (menu) ---------- */
 .coach-card {
@@ -3551,7 +3594,7 @@ select.db-input {
 .set-page-symbol {
   width: 52px;
   height: 52px;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7));
+  filter: brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7));
 }
 .set-page-title {
   font-family: var(--font-title);
