@@ -1,6 +1,8 @@
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { MasteryLevel } from '../coach/types';
 import type { SetMastery } from '../coach/mastery';
+import { prefersReducedMotion } from '../fx/reducedMotion';
 
 export const LEVEL_COLOR: Record<MasteryLevel, string> = {
   unplayed: '#3a4166',
@@ -25,8 +27,38 @@ export const LEVEL_LABEL: Record<MasteryLevel, string> = {
  */
 const RING_TEAL = '#8fd8cf';
 
-export function SetMasteryRing({ pct, size = 50 }: { pct: number; size?: number }) {
+export function SetMasteryRing({
+  pct,
+  size = 50,
+  delay = 0.6,
+}: {
+  pct: number;
+  size?: number;
+  /** Seconds to wait before the ring reveals — used to stagger tiles on load. */
+  delay?: number;
+}) {
   const filled = Math.max(0, Math.min(1, pct));
+  const reduced = prefersReducedMotion();
+
+  // Count the % up from 0 in step with the arc sweep (skipped for reduced motion).
+  const [shown, setShown] = useState(reduced ? filled : 0);
+  const rafRef = useRef<number>(0);
+  useEffect(() => {
+    if (reduced) {
+      setShown(filled);
+      return;
+    }
+    const startAt = performance.now() + delay * 1000;
+    const dur = 1000;
+    const tick = (now: number) => {
+      const t = Math.max(0, Math.min(1, (now - startAt) / dur));
+      setShown(filled * (1 - Math.pow(1 - t, 3)));
+      if (t < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [filled, delay, reduced]);
+
   const stroke = size >= 64 ? 3 : 2.25;
   const pad = stroke + 3; // headroom for the cardinal marks
   const cx = size / 2;
@@ -42,13 +74,19 @@ export function SetMasteryRing({ pct, size = 50 }: { pct: number; size?: number 
     [pad - 1, cy],
   ];
   return (
-    <span className="mastery-ring" title={`Set mastery ${Math.round(filled * 100)}%`}>
+    <motion.span
+      className="mastery-ring"
+      title={`Set mastery ${Math.round(filled * 100)}%`}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay, duration: 0.45, ease: 'easeOut' }}
+    >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle cx={cx} cy={cy} r={rInner + 1.5} fill="rgba(6,8,16,0.55)" />
         {/* faint full track */}
         <circle cx={cx} cy={cy} r={rOuter} fill="none" stroke="rgba(180,214,222,0.16)" strokeWidth={stroke} />
-        {/* progress arc: teal when low, gold as it fills */}
-        <circle
+        {/* progress arc: teal when low, gold as it fills — sweeps in on load */}
+        <motion.circle
           cx={cx}
           cy={cy}
           r={rOuter}
@@ -57,7 +95,9 @@ export function SetMasteryRing({ pct, size = 50 }: { pct: number; size?: number 
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={cOuter}
-          strokeDashoffset={cOuter * (1 - filled)}
+          initial={{ strokeDashoffset: cOuter }}
+          animate={{ strokeDashoffset: cOuter * (1 - filled) }}
+          transition={{ delay, duration: 1, ease: 'easeOut' }}
           transform={`rotate(-90 ${cx} ${cy})`}
           opacity={0.85}
         />
@@ -79,9 +119,9 @@ export function SetMasteryRing({ pct, size = 50 }: { pct: number; size?: number 
         ))}
       </svg>
       <span className="mastery-ring-pct" style={{ color: arcColor }}>
-        {Math.round(filled * 100)}%
+        {Math.round(shown * 100)}%
       </span>
-    </span>
+    </motion.span>
   );
 }
 
@@ -112,7 +152,7 @@ export function SetMasteryModal({
             <h2 className="mastery-modal-title">{setName}</h2>
           </div>
           <div className="mastery-modal-pct">
-            <SetMasteryRing pct={mastery.pct} size={64} />
+            <SetMasteryRing pct={mastery.pct} size={64} delay={0.15} />
             <span>
               {mastery.achievementsEarned}/{mastery.achievementsTotal} achievements ·{' '}
               {mastery.pairsMastered}/10 pairs
