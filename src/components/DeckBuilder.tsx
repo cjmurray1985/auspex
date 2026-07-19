@@ -3,6 +3,7 @@ import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
 import { useDraft } from '../store';
 import { BASIC_LAND_NAMES } from '../data/scryfall';
 import { hoverProps, useHover } from './CardPreview';
+import { MiniCurve } from './ManaSymbols';
 import { useDrag, type DropTarget } from './useDrag';
 import { DeckDetails } from './DeckDetails';
 import type { RatedCard } from '../types';
@@ -392,6 +393,9 @@ export function DeckBuilder() {
     <div className="db">
       <div className="db-toolbar">
         <span className="db-wordmark">DECK</span>
+        <div className="db-toolbar-curve" title="Mana curve (nonland spells)">
+          <MiniCurve cards={deck} />
+        </div>
         <span className="db-stat">
           <i className="ms ms-creature" aria-hidden /> {creatures}
         </span>
