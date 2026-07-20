@@ -1,59 +1,10 @@
-import type { CSSProperties } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDraft } from '../store';
 import { hoverProps } from './CardPreview';
-import { ManaCost, MiniCurve } from './ManaSymbols';
+import { MiniCurve } from './ManaSymbols';
 import type { RatedCard } from '../types';
 
 const isLand = (c: RatedCard) => c.typeLine.includes('Land');
-
-/** WUBRG / multicolor / colorless / land key used to tint each row. */
-function colorKey(card: RatedCard): string {
-  if (isLand(card)) return 'L';
-  if (card.colors.length > 1) return 'M';
-  if (card.colors.length === 0) return 'C';
-  return card.colors[0];
-}
-
-// Official MTG mana colors (full-contrast) for the multicolor gradient frame.
-const FRAME_HEX: Record<string, string> = {
-  W: '#f5f2e1',
-  U: '#0e68ab',
-  B: '#2c2a33',
-  R: '#d3202a',
-  G: '#136f3f',
-};
-const GOLD_FRAME = '#c9a44a';
-
-/** Colors in the order they appear in the mana cost (first colored pip first),
- *  deduped — e.g. {1}{G}{W}{W} → ['G','W']. Falls back to the card's color set. */
-function manaColorOrder(card: RatedCard): string[] {
-  const order: string[] = [];
-  const seen = new Set<string>();
-  for (const tok of card.manaCost.match(/\{([^}]+)\}/g) ?? []) {
-    for (const ch of tok.slice(1, -1).split('/')) {
-      if ('WUBRG'.includes(ch) && !seen.has(ch)) {
-        seen.add(ch);
-        order.push(ch);
-      }
-    }
-  }
-  return order.length ? order : card.colors;
-}
-
-/**
- * Full-contrast gradient for the lower rectangle of multicolor rows,
- * transitioning through the card's drafted colors (mana-cost order). 2–3 colors
- * get the gradient; 4+ colors fall back to the flat gold frame defined in CSS.
- */
-function capStyle(card: RatedCard): CSSProperties | undefined {
-  if (colorKey(card) !== 'M') return undefined;
-  let cols = manaColorOrder(card);
-  if (cols.length < 2) cols = card.colors;
-  if (cols.length >= 4) return undefined; // flat gold frame via CSS
-  const stops = cols.map((c) => FRAME_HEX[c] ?? GOLD_FRAME).join(', ');
-  return { background: `linear-gradient(120deg, ${stops})` };
-}
 
 interface Group {
   card: RatedCard;
@@ -130,16 +81,19 @@ export function DeckPanel() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              className={`ddp-row c-${colorKey(g.card)}`}
+              className="ddp-row"
               onClick={() => onRowClick(g.card)}
               {...hoverProps(g.card, 'full')}
             >
               <span className="ddp-qty">{g.qty}x</span>
-              <div className="ddp-cap" style={capStyle(g.card)}>
-                <div className="ddp-inner">
-                  <span className="ddp-name">{g.card.name}</span>
-                  <ManaCost cost={g.card.manaCost} />
-                </div>
+              <div className="ddp-strip">
+                <img
+                  className="ddp-strip-art"
+                  src={g.card.imageNormal}
+                  alt={g.card.name}
+                  loading="lazy"
+                  draggable={false}
+                />
               </div>
             </motion.div>
           ))}
