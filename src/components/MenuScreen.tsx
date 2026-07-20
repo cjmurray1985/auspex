@@ -7,6 +7,8 @@ import { DRAFT_MODES, type DraftMode } from '../types';
 import { setMastery, type SetMastery } from '../coach/mastery';
 import { SetMasteryRing, SetMasteryModal, SetMasteryPanel } from './SetMastery';
 import { ProgressDashboard } from './review/ProgressDashboard';
+import { AdSlot } from './AdSlot';
+import { DEMO_ADS, EXAMPLE_ADS } from '../data/exampleAds';
 import { navigate, useSubPath } from '../router';
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}auspex-logo.png`;
@@ -52,52 +54,52 @@ function AppNav({
   const account = useAccount((s) => s.profile);
   const profile = useDraft((s) => s.profile);
   const initial = account?.name.trim().charAt(0).toUpperCase() || '?';
-  const sectionLabel = active === 'profile' ? 'Profile' : 'Draft Academy';
+  // Floating controls instead of a full nav bar: a logo (left) and the
+  // profile/sign-in (right) overlay the page and take no layout space, so the
+  // content — and the ad below it — isn't pushed down. Puzzles/Lessons return
+  // later. The middle is click-through (pointer-events handled in CSS).
   return (
-    <nav className="app-nav" aria-label="Auspex">
-      <div className="app-nav-brand">
-        <button className="app-nav-logo-btn" onClick={onDraft} aria-label="Auspex home">
-          <img className="app-nav-logo" src={LOGO_SRC} alt="" width={30} height={30} />
-        </button>
-        <span className="app-nav-section">{sectionLabel}</span>
-      </div>
+    <div className="app-float" aria-label="Auspex">
+      <button
+        className="app-nav-logo-btn app-float-logo"
+        onClick={onDraft}
+        aria-label="Auspex home"
+      >
+        <img className="app-nav-logo" src={LOGO_SRC} alt="Auspex" width={34} height={34} />
+      </button>
 
-      <div className="app-nav-links">
-        <span className="app-nav-link is-soon">Puzzles<em>soon</em></span>
-        <span className="app-nav-link is-soon">Lessons<em>soon</em></span>
-        <button
-          className={`app-nav-profile${active === 'profile' ? ' is-active' : ''}`}
-          onClick={onProfile}
-          title={
-            account
-              ? profile.calibrating
-                ? `${account.name} · Calibrating (${profile.calibrationRemaining} to rank)`
-                : `${account.name} · ${profile.rankLabel}`
-              : 'Sign in'
-          }
-        >
-          {account ? (
-            <>
-              <span
-                className="app-nav-avatar"
-                aria-hidden
-                style={{ background: profile.calibrating ? undefined : profile.rank.color }}
-              >
-                {initial}
-              </span>
-              <span
-                className="app-nav-elo"
-                style={{ color: profile.calibrating ? 'var(--text-dim)' : profile.rank.color }}
-              >
-                {profile.calibrating ? 'Calibrating' : profile.rating}
-              </span>
-            </>
-          ) : (
-            <span className="app-nav-signin">Sign in</span>
-          )}
-        </button>
-      </div>
-    </nav>
+      <button
+        className={`app-nav-profile app-float-profile${active === 'profile' ? ' is-active' : ''}`}
+        onClick={onProfile}
+        title={
+          account
+            ? profile.calibrating
+              ? `${account.name} · Calibrating (${profile.calibrationRemaining} to rank)`
+              : `${account.name} · ${profile.rankLabel}`
+            : 'Sign in'
+        }
+      >
+        {account ? (
+          <>
+            <span
+              className="app-nav-avatar"
+              aria-hidden
+              style={{ background: profile.calibrating ? undefined : profile.rank.color }}
+            >
+              {initial}
+            </span>
+            <span
+              className="app-nav-elo"
+              style={{ color: profile.calibrating ? 'var(--text-dim)' : profile.rank.color }}
+            >
+              {profile.calibrating ? 'Calibrating' : profile.rating}
+            </span>
+          </>
+        ) : (
+          <span className="app-nav-signin">Sign in</span>
+        )}
+      </button>
+    </div>
   );
 }
 
@@ -408,6 +410,13 @@ export function MenuScreen() {
             />
           ))}
         </motion.div>
+
+        <AdSlot
+          format="leaderboard"
+          slotId="academy-leaderboard"
+          className="da-ad"
+          {...(DEMO_ADS ? EXAMPLE_ADS.academyLeaderboard : {})}
+        />
 
         {masterySet && (
           <SetMasteryModal

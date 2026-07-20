@@ -392,9 +392,18 @@ h3,
 
 .draft-screen {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 1rem;
   height: 100vh;
   padding: 0.7rem 1.1rem 0.9rem;
+}
+/* Left column: top bar + pack grid. The right rail is a sibling, so it spans the
+   full height and isn't pushed down by the (left-aligned) top bar. */
+.draft-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .draft-topbar {
@@ -488,13 +497,6 @@ h3,
   }
 }
 
-.draft-body {
-  flex: 1;
-  display: flex;
-  gap: 1rem;
-  min-height: 0;
-}
-
 .pack-grid {
   flex: 1;
   display: grid;
@@ -530,8 +532,17 @@ h3,
 
 /* ---------- draft deck panel (right side) ---------- */
 
-.deck-panel {
+/* Right rail: the live draft pool on top, an ad unit anchored below it. */
+.draft-rail {
   flex: 0 0 322px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-height: 0;
+}
+
+.deck-panel {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -2900,6 +2911,94 @@ select.db-input {
 .legal-disclosure .attribution { margin-top: var(--space-1); opacity: 0.75; }
 .legal-disclosure .attribution a { color: inherit; text-decoration: underline; }
 
+/* ---------- ad slots ----------
+   Subsidy, never dependency. Every unit is labelled and visually separated from
+   card art (Scryfall/WOTC IP hygiene) and reserves its height to avoid layout
+   shift. Hidden entirely when offline via the component (offline-first). */
+.ad-slot {
+  display: flex;
+  flex-direction: column;
+}
+/* Disclosure label: its own reserved space ABOVE the creative — matches how a
+   publisher labels a GPT slot (outside the creative iframe, never over it). */
+.ad-label {
+  margin: 0 0 4px 2px;
+  font-size: 0.58rem;
+  line-height: 1;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  opacity: 0.7;
+}
+/* The boxed creative — exactly the ad's standard size. In production this is the
+   div GPT fills with the creative iframe. */
+.ad-creative {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  background: rgba(12, 14, 26, 0.55);
+}
+.ad-image-link,
+.ad-image,
+.ad-placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Video creatives are letterboxed (contain) so the whole ad is visible; the
+   dark .ad-creative background shows through as the bars. */
+.ad-video-el {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.ad-mute {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  z-index: 2;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  background: rgba(5, 6, 12, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.ad-mute:hover {
+  color: var(--text);
+}
+
+/* Lower-right draft unit: 300x250 medium rectangle (IAB standard), centered in
+   the 322px rail. Hosts a muted-autoplay video or a display creative. */
+.draft-ad {
+  flex: 0 0 auto;
+  align-self: center;
+  max-width: 100%;
+}
+.draft-ad .ad-creative {
+  width: 300px;
+  max-width: 100%;
+  height: 250px;
+  background: #05060c;
+}
+
+/* Academy landing banner, below the four-up set grid. Responsive IAB sizes —
+   up to a 970x250 billboard, then 728x90, then 320x100 — are applied inline by
+   AdSlot; the box just centers and never exceeds the container width. */
+.da-ad {
+  align-self: center;
+  max-width: 100%;
+  margin-top: 2rem;
+}
+.da-ad .ad-creative {
+  max-width: 100%;
+}
+
 /* Reduced-motion (DA-142): calm, complete experience. framer-motion is handled
    by <MotionConfig reducedMotion="user"> and canvas bursts are gated in JS;
    this disables the Ken Burns drift and near-instantly settles CSS animation. */
@@ -2931,18 +3030,31 @@ select.db-input {
   flex-direction: column;
 }
 
-.app-nav {
+/* Floating app controls (no in-flow bar): logo left, profile/sign-in right.
+   Fixed + pointer-events:none so it overlays the page, takes no vertical space,
+   and lets clicks pass through the empty middle. */
+.app-float {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.85rem 1.6rem;
-  border-bottom: 1px solid rgba(212, 175, 106, 0.16);
-  background: linear-gradient(180deg, rgba(19, 26, 46, 0.9), rgba(10, 14, 26, 0.6));
+  padding: 0.85rem 1.4rem;
+  pointer-events: none;
+}
+.app-float > * {
+  pointer-events: auto;
+}
+.app-float-logo {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
+}
+.app-float-profile {
+  background: rgba(10, 14, 26, 0.72);
   backdrop-filter: blur(8px);
-  position: sticky;
-  top: 0;
-  z-index: 20;
 }
 
 .app-nav-brand {
@@ -3074,7 +3186,7 @@ select.db-input {
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 3.6rem 1.5rem 4rem;
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
@@ -3635,7 +3747,7 @@ select.db-input {
   width: 100%;
   max-width: 860px;
   margin: 0 auto;
-  padding: 1.6rem 1.5rem 4rem;
+  padding: 3.6rem 1.5rem 4rem;
   display: flex;
   flex-direction: column;
 }
