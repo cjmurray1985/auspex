@@ -23,9 +23,13 @@ export type AdFormat = 'video' | 'leaderboard';
 
 interface AdSlotProps {
   format: AdFormat;
-  /** Muted-autoplay video creative (video format). Absent → labelled placeholder. */
+  /** Muted-autoplay video creative (video format). Absent → image or placeholder. */
   videoSrc?: string;
   posterSrc?: string;
+  /** Static image creative (either format). Used when there's no video. */
+  imageSrc?: string;
+  /** Optional click-through URL for image creatives. */
+  href?: string;
   /** Slot identifier for a future ad-network mapping / analytics. */
   slotId?: string;
   className?: string;
@@ -77,7 +81,7 @@ function AdVideo({ src, poster }: { src: string; poster?: string }) {
   };
 
   return (
-    <div className="ad-video-frame">
+    <>
       <video
         ref={ref}
         className="ad-video-el"
@@ -93,7 +97,17 @@ function AdVideo({ src, poster }: { src: string; poster?: string }) {
       <button type="button" className="ad-mute" onClick={toggleSound}>
         {muted ? 'Sound off' : 'Sound on'}
       </button>
-    </div>
+    </>
+  );
+}
+
+function AdImage({ src, href }: { src: string; href?: string }) {
+  const img = <img className="ad-image" src={src} alt="Advertisement" draggable={false} />;
+  if (!href) return img;
+  return (
+    <a className="ad-image-link" href={href} target="_blank" rel="noreferrer noopener sponsored">
+      {img}
+    </a>
   );
 }
 
@@ -101,21 +115,45 @@ function AdPlaceholder() {
   return <div className="ad-placeholder" aria-hidden />;
 }
 
-export function AdSlot({ format, videoSrc, posterSrc, slotId, className }: AdSlotProps) {
+export function AdSlot({
+  format,
+  videoSrc,
+  posterSrc,
+  imageSrc,
+  href,
+  slotId,
+  className,
+}: AdSlotProps) {
   const online = useOnline();
   // Offline-first: no network → no ad, and the surrounding layout reclaims the
   // space (the draft rail's deck panel simply grows to fill it).
   if (!online) return null;
 
   const cls = `ad-slot ad-${format}${className ? ` ${className}` : ''}`;
+
+  // Video format always renders its aspect-ratio frame so the slot reserves
+  // space even before a creative loads (no layout collapse / shift).
+  const creative =
+    format === 'video' ? (
+      <div className="ad-video-frame">
+        {videoSrc ? (
+          <AdVideo src={videoSrc} poster={posterSrc} />
+        ) : imageSrc ? (
+          <AdImage src={imageSrc} href={href} />
+        ) : (
+          <AdPlaceholder />
+        )}
+      </div>
+    ) : imageSrc ? (
+      <AdImage src={imageSrc} href={href} />
+    ) : (
+      <AdPlaceholder />
+    );
+
   return (
     <aside className={cls} aria-label="Advertisement" data-slot-id={slotId}>
       <span className="ad-label">Advertisement</span>
-      {format === 'video' && videoSrc ? (
-        <AdVideo src={videoSrc} poster={posterSrc} />
-      ) : (
-        <AdPlaceholder />
-      )}
+      {creative}
     </aside>
   );
 }

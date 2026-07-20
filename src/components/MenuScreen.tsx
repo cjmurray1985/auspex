@@ -8,6 +8,7 @@ import { setMastery, type SetMastery } from '../coach/mastery';
 import { SetMasteryRing, SetMasteryModal, SetMasteryPanel } from './SetMastery';
 import { ProgressDashboard } from './review/ProgressDashboard';
 import { AdSlot } from './AdSlot';
+import { DEMO_ADS, EXAMPLE_ADS } from '../data/exampleAds';
 import { navigate, useSubPath } from '../router';
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}auspex-logo.png`;
@@ -416,7 +417,12 @@ export function MenuScreen() {
           ))}
         </motion.div>
 
-        <AdSlot format="leaderboard" slotId="academy-leaderboard" className="da-ad" />
+        <AdSlot
+          format="leaderboard"
+          slotId="academy-leaderboard"
+          className="da-ad"
+          {...(DEMO_ADS ? EXAMPLE_ADS.academyLeaderboard : {})}
+        />
 
         {masterySet && (
           <SetMasteryModal
