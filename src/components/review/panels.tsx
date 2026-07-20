@@ -4,10 +4,12 @@ import type {
   CategoryScore,
   CoachingMoment,
   DeckAnalysis,
+  DecisionEval,
 } from '../../coach/types';
 import type { Persona } from '../../engine/bot';
 import type { RatedCard } from '../../types';
 import { hoverProps } from '../CardPreview';
+import { MomentVisual } from './MomentVisual';
 import { ConfidencePill, MeterBar, scoreColor } from './ui';
 
 // ---------- Categories ----------
@@ -49,10 +51,13 @@ export function MomentsList({
   moments,
   onJump,
   compact,
+  decisions,
 }: {
   moments: CoachingMoment[];
   onJump: (decisionIndex: number) => void;
   compact?: boolean;
+  /** When provided, each moment gets a templated visual from its decision. */
+  decisions?: DecisionEval[];
 }) {
   if (!moments.length)
     return <div className="empty-note">No standout swings — a steady, mistake-free draft.</div>;
@@ -72,6 +77,7 @@ export function MomentsList({
               {m.title}
               <span className="moment-ref">P{m.packNumber}P{m.pickNumber}</span>
             </div>
+            {decisions && <MomentVisual moment={m} decision={decisions[m.decisionIndex]} />}
             <div className="moment-lesson">{m.lesson}</div>
             <button className="link-btn" onClick={() => onJump(m.decisionIndex)}>
               Review this pick →
