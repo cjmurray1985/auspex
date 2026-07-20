@@ -7,10 +7,10 @@ const ROTATE_MS = 16000;
 const MIN_WIDTH = BG_MIN_WIDTH;
 
 /**
- * Full-bleed hi-res art background scraped from mtgpics.com (set 493), cross-
- * fading between pieces with a slow Ken Burns drift. A dark, color-tinted scrim
- * plus a faint halftone overlay keep foreground UI legible and edges crisp on
- * hi-dpi displays. The pool is user-curatable via #bg-gallery.
+ * Full-bleed hi-res art background (per-set mtgpics art, or Scryfall crops as a
+ * fallback), cross-fading between static pieces. A dark, color-tinted scrim plus
+ * a faint halftone (or scanlines on the fallback) keep foreground UI legible.
+ * The pool is user-curatable via #bg-gallery.
  */
 export function Background() {
   const phase = useDraft((s) => s.phase);
@@ -148,7 +148,7 @@ export function Background() {
   return (
     <div className={`bg-root bg-phase-${phase}`} aria-hidden>
       <div
-        className={`bg-layer kenburns${layers.showA ? ' show' : ''}`}
+        className={`bg-layer${layers.showA ? ' show' : ''}`}
         style={
           layers.a
             ? { backgroundImage: `url(${layers.a.url})`, backgroundPosition: layers.a.pos }
@@ -156,7 +156,7 @@ export function Background() {
         }
       />
       <div
-        className={`bg-layer kenburns${!layers.showA ? ' show' : ''}`}
+        className={`bg-layer${!layers.showA ? ' show' : ''}`}
         style={
           layers.b
             ? { backgroundImage: `url(${layers.b.url})`, backgroundPosition: layers.b.pos }
