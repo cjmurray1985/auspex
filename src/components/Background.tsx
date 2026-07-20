@@ -16,21 +16,29 @@ export function Background() {
   const phase = useDraft((s) => s.phase);
   const currentRound = useDraft((s) => s.currentRound);
   const selectedSet = useDraft((s) => s.selectedSet);
+  const cardPool = useDraft((s) => s.cardPool);
   const excluded = useBgPrefs((s) => s.excluded);
 
+  // Sets with no scraped mtgpics pool (e.g. OTJ, whose mtgpics index is broken)
+  // fall back to the set's own Scryfall art crops — lower-res, so we mask them
+  // with scanlines instead of the hi-res halftone.
+  const fallback = phase !== 'menu' && artForSet(selectedSet.code).length === 0;
+
   const urls = useMemo(() => {
-    // Homepage is a plain black canvas (a future 3D "seed" environment lands
-    // here) — no rotating art on the menu.
     if (phase === 'menu') return [];
-    // Only the SELECTED set's own mtgpics art — never another set's. Sets with
-    // no scraped pool yield no urls, so the layer stays a clean gradient.
-    const ex = new Set(excluded[selectedSet.code] ?? []);
-    const pick = artForSet(selectedSet.code)
-      .filter((a) => a.w >= MIN_WIDTH && !ex.has(a.num))
-      .map((a) => artUrl(selectedSet.mtgpicsCode, a.num));
-    // De-dupe and shuffle for variety across sessions
-    return [...new Set(pick)].sort(() => Math.random() - 0.5);
-  }, [excluded, selectedSet, phase]);
+    const mtg = artForSet(selectedSet.code);
+    if (mtg.length) {
+      // Only the SELECTED set's own mtgpics art — never another set's.
+      const ex = new Set(excluded[selectedSet.code] ?? []);
+      const pick = mtg
+        .filter((a) => a.w >= MIN_WIDTH && !ex.has(a.num))
+        .map((a) => artUrl(selectedSet.mtgpicsCode, a.num));
+      return [...new Set(pick)].sort(() => Math.random() - 0.5);
+    }
+    // Fallback: Scryfall art crops from the set's own cards.
+    const crops = cardPool.map((c) => c.artCrop).filter((u): u is string => !!u);
+    return [...new Set(crops)].sort(() => Math.random() - 0.5);
+  }, [excluded, selectedSet, phase, cardPool]);
 
   // Two stacked layers we alternate between for a smooth crossfade. Each layer
   // carries its own crop position so portrait art can be top-anchored.
@@ -62,7 +70,9 @@ export function Background() {
       // Prioritise the very first background art so it arrives ASAP.
       if (idxRef.current === 0) img.fetchPriority = 'high';
       img.onload = () => {
-        if (img.naturalWidth >= MIN_WIDTH) {
+        // Fallback (Scryfall) art is ~626px, so it can't meet the mtgpics
+        // hi-res floor — accept any size there; scanlines mask the upscale.
+        if (img.naturalWidth >= (fallback ? 0 : MIN_WIDTH)) {
           idxRef.current = idx;
           // Portrait pieces (taller than wide, e.g. "Villain") crop from the
           // top so the subject's head/upper body stays in frame; landscape art
@@ -153,10 +163,9 @@ export function Background() {
             : undefined
         }
       />
-      {/* Fixed fine halftone screen: adds high-frequency micro-contrast that
-          reads as crisper edges on hi-dpi displays, masking soft upscaling of
-          the smaller (~1024px) pieces. Kept very subtle. */}
-      <div className="bg-halftone" />
+      {/* mtgpics art gets a fine halftone (crispening); the lower-res Scryfall
+          fallback gets scanlines to stylise + mask the upscale. */}
+      {fallback ? <div className="bg-scanlines" /> : <div className="bg-halftone" />}
       <div className="bg-scrim" />
     </div>
   );
