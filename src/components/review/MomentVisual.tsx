@@ -3,6 +3,7 @@ import type { CoachingMoment, DecisionEval } from '../../coach/types';
 import type { RatedCard } from '../../types';
 import { hoverProps } from '../CardPreview';
 import { gradeColor } from '../Card3D';
+import { ManaPip } from '../ManaSymbols';
 
 /**
  * Templated visual for a coaching moment. Each feedback type gets the treatment
@@ -45,7 +46,7 @@ function Pips({ active }: { active: string[] }) {
   return (
     <div className="mv-pips">
       {WUBRG.map((c) => (
-        <i key={c} className={`ms ms-${c.toLowerCase()} ms-cost${on.has(c) ? '' : ' mv-pip-off'}`} aria-hidden />
+        <ManaPip key={c} sym={c} dim={!on.has(c)} />
       ))}
     </div>
   );
@@ -61,7 +62,7 @@ function ColorBars({ affinity, committed }: { affinity: Record<string, number>; 
           <div className="mv-bar-col">
             <div className="mv-bar-fill" style={{ height: `${Math.round(((affinity[c] ?? 0) / max) * 100)}%` }} />
           </div>
-          <i className={`ms ms-${c.toLowerCase()} ms-cost`} aria-hidden />
+          <ManaPip sym={c} />
         </div>
       ))}
     </div>

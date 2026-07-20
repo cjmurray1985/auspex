@@ -716,13 +716,7 @@ h3,
 }
 .ddp-inner .mana-cost {
   flex: 0 0 auto;
-  font-size: 17px;
-}
-/* Flatten the mana pips — no gloss, drop-shadow or text-shadow.
-   Extra selector depth beats the global `.mana-cost .ms-cost` drop-shadow. */
-.ddp-inner .mana-cost .ms-cost {
-  filter: none;
-  text-shadow: none;
+  font-size: 15px;
 }
 
 /* Color identity — official MTG mana colors. --frame is the full-contrast
@@ -770,16 +764,46 @@ h3,
   line-height: 1.5;
 }
 
-/* Mana-cost pips rendered with Andrew Gioia's Mana font. */
+/* Mana-cost row of Auspex colour discs. */
 .mana-cost {
   display: inline-flex;
   align-items: center;
-  gap: 1px;
+  gap: 2px;
   flex: 0 0 auto;
-  font-size: 0.84rem;
+  font-size: 0.9rem;
 }
-.mana-cost .ms-cost {
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+
+/* Auspex colour pip: a colour letter inside a disc. Our own visual language —
+   not WOTC's mana glyphs. The letter is a grayscale-safe (colourblind) signal. */
+.pip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 1.3em;
+  height: 1.3em;
+  border-radius: 50%;
+  font-family: var(--font-body);
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: -0.24em;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.28),
+    0 1px 1.5px rgba(0, 0, 0, 0.3);
+  user-select: none;
+}
+.pip > span {
+  font-size: 0.72em;
+  transform: translateY(0.02em);
+}
+.pip-hybrid > span {
+  font-size: 0.52em;
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.55);
+}
+.pip-off {
+  opacity: 0.3;
+  filter: grayscale(0.6);
 }
 
 .ddp-tabs {
@@ -2103,8 +2127,7 @@ select.db-input {
   font-size: 0.72rem;
   color: var(--text-dim);
 }
-.mv-pips { display: flex; gap: 0.25rem; font-size: 1.05rem; }
-.mv-pips .mv-pip-off { opacity: 0.28; filter: grayscale(0.7); }
+.mv-pips { display: flex; gap: 0.3rem; font-size: 1.05rem; }
 
 .mv-gauge { display: flex; flex-direction: column; gap: 0.3rem; align-items: center; }
 .mv-gauge-track {
@@ -2807,6 +2830,7 @@ select.db-input {
 .dd-curve-k { font-size: var(--text-xs); color: var(--text-dim); }
 .dd-colors { display: flex; flex-direction: column; gap: var(--space-2); }
 .dd-color-row { display: flex; align-items: center; gap: var(--space-3); }
+.dd-color-row .pip { font-size: 1.1rem; }
 .dd-color-name { width: 60px; font-size: var(--text-sm); }
 .dd-color-bar { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
 .dd-color-bar i { display: block; height: 100%; background: var(--accent); }
@@ -3458,17 +3482,6 @@ select.db-input {
   align-items: center;
   gap: 0.55rem;
 }
-.set-tile-symbol {
-  width: 26px;
-  height: 26px;
-  object-fit: contain;
-  filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
-  opacity: 0.95;
-}
-.set-tile-featured .set-tile-symbol {
-  width: 32px;
-  height: 32px;
-}
 .set-tile-foot {
   display: flex;
   align-items: baseline;
@@ -3739,11 +3752,6 @@ select.db-input {
   align-items: center;
   text-align: center;
   gap: 0.55rem;
-}
-.set-page-symbol {
-  width: 52px;
-  height: 52px;
-  filter: brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7));
 }
 .set-page-title {
   font-family: var(--font-title);
