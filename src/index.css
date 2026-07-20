@@ -374,9 +374,18 @@ h3,
 
 .draft-screen {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 1rem;
   height: 100vh;
   padding: 0.7rem 1.1rem 0.9rem;
+}
+/* Left column: top bar + pack grid. The right rail is a sibling, so it spans the
+   full height and isn't pushed down by the (left-aligned) top bar. */
+.draft-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .draft-topbar {
@@ -468,13 +477,6 @@ h3,
     filter: brightness(1.5);
     box-shadow: 0 0 14px rgba(216, 90, 90, 0.9);
   }
-}
-
-.draft-body {
-  flex: 1;
-  display: flex;
-  gap: 1rem;
-  min-height: 0;
 }
 
 .pack-grid {
