@@ -2872,17 +2872,16 @@ select.db-input {
   background: #05060c;
 }
 
-/* Academy landing leaderboard, below the four-up set grid: 728x90 (IAB
-   standard), centered; shrinks on narrow viewports but keeps its height. */
+/* Academy landing banner, below the four-up set grid. Responsive IAB sizes —
+   up to a 970x250 billboard, then 728x90, then 320x100 — are applied inline by
+   AdSlot; the box just centers and never exceeds the container width. */
 .da-ad {
   align-self: center;
   max-width: 100%;
   margin-top: 2rem;
 }
 .da-ad .ad-creative {
-  width: 728px;
   max-width: 100%;
-  height: 90px;
 }
 
 /* Reduced-motion (DA-142): calm, complete experience. framer-motion is handled

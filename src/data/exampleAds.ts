@@ -13,11 +13,16 @@ const BASE = import.meta.env.BASE_URL;
 export const EXAMPLE_ADS = {
   /** Lower-right unit during a draft — 300x250 medium rectangle (muted video). */
   draftVideo: {
-    videoSrc: `${BASE}ads/big_buck_bunny.mp4`,
+    videoSrc: `${BASE}ads/ad.mp4`,
   },
-  /** Banner below the four-up set grid — 728x90 leaderboard. */
+  /** Banner below the four-up set grid. Responsive: up to a 970x250 billboard on
+   *  wide viewports, stepping down to a 728x90 leaderboard, then 320x100. */
   academyLeaderboard: {
-    imageSrc: `${BASE}ads/example-ad-leaderboard.png`,
     href: 'https://example.com',
+    sizes: [
+      { minViewport: 1000, w: 970, h: 250, imageSrc: `${BASE}ads/example-ad-billboard.png` },
+      { minViewport: 760, w: 728, h: 90, imageSrc: `${BASE}ads/example-ad-leaderboard.png` },
+      { minViewport: 0, w: 320, h: 100, imageSrc: `${BASE}ads/example-ad-leaderboard.png` },
+    ],
   },
 } as const;

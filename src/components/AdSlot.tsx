@@ -21,6 +21,17 @@ import { prefersReducedMotion } from '../fx/reducedMotion';
 
 export type AdFormat = 'video' | 'leaderboard';
 
+/** One eligible size in a responsive slot, mirroring a GPT `sizeMapping` entry.
+ *  List largest-first; the first whose `minViewport` fits the viewport wins. */
+export interface AdSize {
+  w: number;
+  h: number;
+  /** Minimum viewport width (px) for this size to be eligible. Default 0. */
+  minViewport?: number;
+  imageSrc?: string;
+  videoSrc?: string;
+}
+
 interface AdSlotProps {
   format: AdFormat;
   /** Muted-autoplay video creative (video format). Absent → image or placeholder. */
@@ -30,9 +41,26 @@ interface AdSlotProps {
   imageSrc?: string;
   /** Optional click-through URL for image creatives. */
   href?: string;
+  /** Responsive size map (largest-first). When set, the largest size whose
+   *  `minViewport` fits the current viewport is rendered — like GPT picking the
+   *  biggest eligible creative (e.g. 970x250 billboard → 728x90 → 320x100). */
+  sizes?: readonly AdSize[];
   /** Slot identifier for a future ad-network mapping / analytics. */
   slotId?: string;
   className?: string;
+}
+
+/** Current viewport width, updated on resize — drives responsive size choice. */
+function useViewportWidth(): number {
+  const [w, setW] = useState(() =>
+    typeof window === 'undefined' ? 1280 : window.innerWidth,
+  );
+  useEffect(() => {
+    const on = () => setW(window.innerWidth);
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
+  return w;
 }
 
 /** Live online status, so the slot disappears cleanly when the network drops. */
@@ -121,21 +149,31 @@ export function AdSlot({
   posterSrc,
   imageSrc,
   href,
+  sizes,
   slotId,
   className,
 }: AdSlotProps) {
   const online = useOnline();
+  const vw = useViewportWidth();
   // Offline-first: no network → no ad, and the surrounding layout reclaims the
   // space (the draft rail's deck panel simply grows to fill it).
   if (!online) return null;
 
   const cls = `ad-slot ad-${format}${className ? ` ${className}` : ''}`;
 
+  // Responsive slot: pick the largest eligible size for this viewport.
+  const chosen = sizes?.find((s) => vw >= (s.minViewport ?? 0)) ?? sizes?.at(-1);
+  const effVideo = chosen?.videoSrc ?? videoSrc;
+  const effImage = chosen?.imageSrc ?? imageSrc;
+  const creativeStyle = chosen
+    ? { width: chosen.w, height: chosen.h, maxWidth: '100%' }
+    : undefined;
+
   const creative =
-    format === 'video' && videoSrc ? (
-      <AdVideo src={videoSrc} poster={posterSrc} />
-    ) : imageSrc ? (
-      <AdImage src={imageSrc} href={href} />
+    format === 'video' && effVideo ? (
+      <AdVideo src={effVideo} poster={posterSrc} />
+    ) : effImage ? (
+      <AdImage src={effImage} href={href} />
     ) : (
       <AdPlaceholder />
     );
@@ -149,7 +187,9 @@ export function AdSlot({
   return (
     <aside className={cls} aria-label="Advertisement" data-slot-id={slotId}>
       <span className="ad-label">Advertisement</span>
-      <div className="ad-creative">{creative}</div>
+      <div className="ad-creative" style={creativeStyle}>
+        {creative}
+      </div>
     </aside>
   );
 }
