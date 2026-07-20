@@ -3802,6 +3802,7 @@ select.db-input {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end; /* bottom-align the set messaging over the art */
   text-align: center;
   gap: 0.55rem;
 }
