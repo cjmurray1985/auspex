@@ -638,18 +638,18 @@ h3,
   cursor: pointer;
   display: flex;
   align-items: flex-start;
-  height: 40px;
+  height: 48px;
   flex: 0 0 auto;
   font-family: var(--font-title);
 }
 .ddp-row + .ddp-row {
-  margin-top: -8px; /* overlap for the stacked-card look */
+  margin-top: -10px; /* overlap the art below the title for the stacked look */
 }
 .ddp-row:hover {
   z-index: 5;
 }
 
-/* Left piece: dark quantity tab, aligned to the visible header band. */
+/* Left piece: dark quantity tab, sat on the card's title line. */
 .ddp-qty {
   position: relative;
   z-index: 2;
@@ -658,14 +658,14 @@ h3,
   align-items: center;
   justify-content: center;
   min-width: 1.9rem;
-  height: 30px;
-  margin-top: 1px;
+  height: 26px;
+  margin-top: 6px; /* drop onto the printed title band (see .ddp-strip-art) */
   padding: 0 0.45rem;
   border-radius: 7px;
   background: #191b21;
   border: 2px solid #090a0d;
   color: #eef0f4;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
@@ -690,8 +690,10 @@ h3,
   display: block;
   width: 100%;
   height: auto;
-  /* Full image scaled to width; the row's fixed height + overflow:hidden crop
-     it to the top title band. */
+  /* Full image scaled to width. The negative offset trims the black top border
+     so the printed name/mana row sits at the top of the visible band, and the
+     row's fixed height + overflow:hidden crop the rest of the card away. */
+  margin-top: -7px;
 }
 .ddp-row:hover .ddp-strip {
   filter: brightness(1.1);
