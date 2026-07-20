@@ -638,15 +638,12 @@ h3,
   cursor: pointer;
   display: flex;
   align-items: flex-start;
-  height: 48px;
+  height: 40px;
   flex: 0 0 auto;
   font-family: var(--font-title);
 }
 .ddp-row + .ddp-row {
-  margin-top: -10px; /* overlap the art below the title for the stacked look */
-}
-.ddp-row:hover {
-  z-index: 5;
+  margin-top: -6px; /* subtle overlap for the stacked-card look */
 }
 
 /* Left piece: dark quantity tab, sat on the card's title line. */
@@ -696,8 +693,7 @@ h3,
   margin-top: -7px;
 }
 .ddp-row:hover .ddp-strip {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
+  filter: brightness(1.08);
 }
 
 .ddp-empty {
