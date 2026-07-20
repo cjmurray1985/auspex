@@ -131,29 +131,25 @@ export function AdSlot({
 
   const cls = `ad-slot ad-${format}${className ? ` ${className}` : ''}`;
 
-  // Video format always renders its aspect-ratio frame so the slot reserves
-  // space even before a creative loads (no layout collapse / shift).
   const creative =
-    format === 'video' ? (
-      <div className="ad-video-frame">
-        {videoSrc ? (
-          <AdVideo src={videoSrc} poster={posterSrc} />
-        ) : imageSrc ? (
-          <AdImage src={imageSrc} href={href} />
-        ) : (
-          <AdPlaceholder />
-        )}
-      </div>
+    format === 'video' && videoSrc ? (
+      <AdVideo src={videoSrc} poster={posterSrc} />
     ) : imageSrc ? (
       <AdImage src={imageSrc} href={href} />
     ) : (
       <AdPlaceholder />
     );
 
+  // Layout mirrors a real Google Publisher Tag unit: the disclosure label is a
+  // sibling ABOVE the creative, in its own reserved space — never overlapping.
+  // In production the creative renders inside a GPT-managed iframe (SafeFrame)
+  // that exactly fills `.ad-creative`; the publisher can only label around that
+  // iframe, not draw over it. `.ad-creative` is sized to the standard slot
+  // dimensions so there's no layout shift when the creative loads.
   return (
     <aside className={cls} aria-label="Advertisement" data-slot-id={slotId}>
       <span className="ad-label">Advertisement</span>
-      {creative}
+      <div className="ad-creative">{creative}</div>
     </aside>
   );
 }

@@ -2808,57 +2808,37 @@ select.db-input {
    card art (Scryfall/WOTC IP hygiene) and reserves its height to avoid layout
    shift. Hidden entirely when offline via the component (offline-first). */
 .ad-slot {
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius);
-  background: rgba(12, 14, 26, 0.55);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
+/* Disclosure label: its own reserved space ABOVE the creative — matches how a
+   publisher labels a GPT slot (outside the creative iframe, never over it). */
 .ad-label {
-  position: absolute;
-  top: 6px;
-  left: 8px;
-  z-index: 2;
+  margin: 0 0 4px 2px;
   font-size: 0.58rem;
+  line-height: 1;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--text-dim);
   opacity: 0.7;
-  pointer-events: none;
 }
-.ad-placeholder {
-  width: 100%;
-  height: 100%;
-  min-height: inherit;
-}
-.ad-image-link,
-.ad-image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Lower-right draft unit: 300x250 medium rectangle (IAB standard), centered in
-   the 322px rail. Hosts a muted-autoplay video or a display creative. */
-.draft-ad.ad-video {
-  flex: 0 0 auto;
-  align-self: center;
-  width: 300px;
-  height: 250px;
-  max-width: 100%;
-}
-.ad-video-frame {
+/* The boxed creative — exactly the ad's standard size. In production this is the
+   div GPT fills with the creative iframe. */
+.ad-creative {
   position: relative;
-  width: 100%;
-  height: 100%;
-  background: #05060c;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  background: rgba(12, 14, 26, 0.55);
 }
-.ad-video-el {
+.ad-video-el,
+.ad-image-link,
+.ad-image,
+.ad-placeholder {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 .ad-mute {
   position: absolute;
@@ -2878,13 +2858,31 @@ select.db-input {
   color: var(--text);
 }
 
+/* Lower-right draft unit: 300x250 medium rectangle (IAB standard), centered in
+   the 322px rail. Hosts a muted-autoplay video or a display creative. */
+.draft-ad {
+  flex: 0 0 auto;
+  align-self: center;
+  max-width: 100%;
+}
+.draft-ad .ad-creative {
+  width: 300px;
+  max-width: 100%;
+  height: 250px;
+  background: #05060c;
+}
+
 /* Academy landing leaderboard, below the four-up set grid: 728x90 (IAB
    standard), centered; shrinks on narrow viewports but keeps its height. */
-.da-ad.ad-leaderboard {
+.da-ad {
+  align-self: center;
+  max-width: 100%;
+  margin-top: 2rem;
+}
+.da-ad .ad-creative {
   width: 728px;
   max-width: 100%;
   height: 90px;
-  margin: 2rem auto 0;
 }
 
 /* Reduced-motion (DA-142): calm, complete experience. framer-motion is handled
