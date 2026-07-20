@@ -7,6 +7,7 @@ import { DRAFT_MODES, type DraftMode } from '../types';
 import { setMastery, type SetMastery } from '../coach/mastery';
 import { SetMasteryRing, SetMasteryModal, SetMasteryPanel } from './SetMastery';
 import { ProgressDashboard } from './review/ProgressDashboard';
+import { AdSlot } from './AdSlot';
 import { navigate, useSubPath } from '../router';
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}auspex-logo.png`;
@@ -414,6 +415,8 @@ export function MenuScreen() {
             />
           ))}
         </motion.div>
+
+        <AdSlot format="leaderboard" slotId="academy-leaderboard" className="da-ad" />
 
         {masterySet && (
           <SetMasteryModal

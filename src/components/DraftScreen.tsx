@@ -4,6 +4,7 @@ import { useDraft, PICK_SECONDS } from '../store';
 import { Card3D } from './Card3D';
 import { hoverProps, useHover } from './CardPreview';
 import { DeckPanel } from './DeckPanel';
+import { AdSlot } from './AdSlot';
 import type { RatedCard } from '../types';
 
 // Display order: WUBRG, then multicolor, colorless, lands.
@@ -173,7 +174,10 @@ export function DraftScreen() {
           </AnimatePresence>
         </motion.div>
 
-        <DeckPanel />
+        <div className="draft-rail">
+          <DeckPanel />
+          <AdSlot format="video" slotId="draft-rail-video" className="draft-ad" />
+        </div>
       </div>
     </div>
   );
