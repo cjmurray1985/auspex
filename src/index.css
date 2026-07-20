@@ -2831,7 +2831,6 @@ select.db-input {
   border-radius: var(--radius);
   background: rgba(12, 14, 26, 0.55);
 }
-.ad-video-el,
 .ad-image-link,
 .ad-image,
 .ad-placeholder {
@@ -2839,6 +2838,14 @@ select.db-input {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+/* Video creatives are letterboxed (contain) so the whole ad is visible; the
+   dark .ad-creative background shows through as the bars. */
+.ad-video-el {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .ad-mute {
   position: absolute;
