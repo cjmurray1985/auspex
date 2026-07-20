@@ -2924,18 +2924,31 @@ select.db-input {
   flex-direction: column;
 }
 
-.app-nav {
+/* Floating app controls (no in-flow bar): logo left, profile/sign-in right.
+   Fixed + pointer-events:none so it overlays the page, takes no vertical space,
+   and lets clicks pass through the empty middle. */
+.app-float {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.85rem 1.6rem;
-  border-bottom: 1px solid rgba(212, 175, 106, 0.16);
-  background: linear-gradient(180deg, rgba(19, 26, 46, 0.9), rgba(10, 14, 26, 0.6));
+  padding: 0.85rem 1.4rem;
+  pointer-events: none;
+}
+.app-float > * {
+  pointer-events: auto;
+}
+.app-float-logo {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
+}
+.app-float-profile {
+  background: rgba(10, 14, 26, 0.72);
   backdrop-filter: blur(8px);
-  position: sticky;
-  top: 0;
-  z-index: 20;
 }
 
 .app-nav-brand {
@@ -3067,7 +3080,7 @@ select.db-input {
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 3.6rem 1.5rem 4rem;
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
@@ -3634,7 +3647,7 @@ select.db-input {
   width: 100%;
   max-width: 860px;
   margin: 0 auto;
-  padding: 1.6rem 1.5rem 4rem;
+  padding: 3.6rem 1.5rem 4rem;
   display: flex;
   flex-direction: column;
 }
