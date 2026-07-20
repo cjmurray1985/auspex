@@ -62,7 +62,6 @@ export function GuidedReview({
   const sorted = [...review.categories].sort((a, b) => b.score - a.score);
   const strongest = sorted[0];
   const weakest = sorted[sorted.length - 1];
-  const topGoal = profile.goals?.[0];
 
   const steps: Step[] = [
     {
@@ -117,21 +116,6 @@ export function GuidedReview({
               </div>
             ))}
           </div>
-        </div>
-      ),
-    },
-    {
-      key: 'next',
-      title: "Where you're headed",
-      render: () => (
-        <div className="gr-next">
-          <RatingChip profile={profile} />
-          {topGoal && (
-            <div className="gr-goal">
-              <div className="gr-goal-title">This week: {topGoal.title}</div>
-              <div className="gr-goal-detail">{topGoal.detail}</div>
-            </div>
-          )}
         </div>
       ),
     },
