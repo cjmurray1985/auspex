@@ -211,7 +211,7 @@ export function ReviewScreen() {
       <>
       {/* ---------- Tabs ---------- */}
       <div className="review-tabs">
-        {TABS.map((t) => (
+        {TABS.filter((t) => t.key !== 'table' || review.mode !== 'quick').map((t) => (
           <button key={t.key} className={`review-tab${tab === t.key ? ' on' : ''}`} onClick={() => setTab(t.key)}>
             {t.label}
           </button>
