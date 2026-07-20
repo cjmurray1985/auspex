@@ -30,6 +30,9 @@ export interface DraftableSet extends SetConfig {
   blurb: string;
   /** Featured set gets the hero tile + is the default draft. */
   featured?: boolean;
+  /** Scheduled but not the current queue — badged "Upcoming" instead of its
+   *  draft type. */
+  upcoming?: boolean;
   /**
    * Card whose art fronts this set's tile on the landing. To change the art a
    * set shows, swap `cn` (that card's collector number in this set) — the tile
@@ -52,6 +55,13 @@ export function setArtUrl(set: DraftableSet): string | null {
 /** Scryfall monochrome set-symbol SVG for a set. */
 export function setSymbolUrl(set: DraftableSet): string {
   return `https://svgs.scryfall.io/sets/${set.code.toLowerCase()}.svg`;
+}
+
+/** Badge/eyebrow label: "Upcoming" for scheduled-but-not-current drafts, the
+ *  draft format when live, else "Coming soon". */
+export function setBadge(set: DraftableSet): string {
+  if (set.upcoming) return 'Upcoming';
+  return set.status === 'live' ? set.format : 'Coming soon';
 }
 
 export const SETS: DraftableSet[] = [
@@ -90,6 +100,7 @@ export const SETS: DraftableSet[] = [
     mtgpicsSetId: 441,
     status: 'live',
     format: 'Quick Draft',
+    upcoming: true,
     blurb: "It's good to be wanted.",
     art: { cn: '213', card: 'Kellan, the Kid', artist: 'Magali Villeneuve' },
   },
