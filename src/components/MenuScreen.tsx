@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useDraft } from '../store';
-import { SETS, getSet, setArtUrl, setSymbolUrl, type DraftableSet } from '../data/sets';
+import { SETS, getSet, setArtUrl, setBadge, type DraftableSet } from '../data/sets';
 import { useAccount } from '../data/account';
 import { DRAFT_MODES, type DraftMode } from '../types';
 import { setMastery, type SetMastery } from '../coach/mastery';
@@ -153,15 +153,10 @@ function SetTile({
 
       <div className="set-tile-content">
         <div className="set-tile-meta">
-          <img
-            className="set-tile-symbol"
-            src={setSymbolUrl(set)}
-            alt={set.code}
-            loading="lazy"
-            draggable={false}
-          />
-          <span className={`set-tile-badge${live ? '' : ' set-tile-badge-soon'}`}>
-            {live ? set.format : 'Coming soon'}
+          <span
+            className={`set-tile-badge${set.upcoming ? ' set-tile-badge-upcoming' : live ? '' : ' set-tile-badge-soon'}`}
+          >
+            {setBadge(set)}
           </span>
         </div>
         <div className="set-tile-name">{set.name}</div>
@@ -316,8 +311,7 @@ function SetLandingPage({
           {art && <img className="set-page-hero-art" src={art} alt="" draggable={false} />}
           <div className="set-page-hero-scrim" />
           <div className="set-page-hero-body">
-            <img className="set-page-symbol" src={setSymbolUrl(set)} alt="" draggable={false} />
-            <div className="experience-lockup">{live ? set.format : 'Coming soon'}</div>
+            <div className="experience-lockup">{setBadge(set)}</div>
             <h1 className="set-page-title">{set.name}</h1>
             {error && <div className="da-error">{error}</div>}
             <button

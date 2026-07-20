@@ -62,32 +62,33 @@ export function GuidedReview({
   const sorted = [...review.categories].sort((a, b) => b.score - a.score);
   const strongest = sorted[0];
   const weakest = sorted[sorted.length - 1];
-  const topGoal = profile.goals?.[0];
 
   const steps: Step[] = [
     {
       key: 'verdict',
       title: 'The verdict',
       render: () => (
-        <div className="gr-verdict">
-          <div className="gr-verdict-grade">
-            <div className="gr-letter" style={{ color: gradeColor(review.letter) }}>{review.letter}</div>
-            <div className="gr-score">{review.overall}<span>/100</span></div>
-          </div>
-          <p className="gr-headline">{review.headline}</p>
-          <div className="gr-verdict-badges">
-            <span className="badge">vs {DRAFT_MODES[review.mode].label}</span>
-            <ConfidencePill level={review.confidence} />
-            {isPB && <span className="pb-badge">NEW PERSONAL BEST</span>}
-            {best !== null && !isPB && <span className="badge">Best: {best}/100 · {recordCount} drafts</span>}
-            <RatingChip profile={profile} />
-          </div>
-          <div className="tier-summary">
-            {(['best', 'strong', 'acceptable', 'weak', 'mistake'] as const).map((t) => (
-              <span key={t} className={`tier-count tier-${t}`}>
-                <b>{review.tierCounts[t]}</b> {t}
-              </span>
-            ))}
+        <div className="verdict-card">
+          <div className="gr-verdict">
+            <div className="gr-verdict-grade">
+              <div className="gr-letter" style={{ color: gradeColor(review.letter) }}>{review.letter}</div>
+              <div className="gr-score">{review.overall}<span>/100</span></div>
+            </div>
+            <p className="gr-headline">{review.headline}</p>
+            <div className="gr-verdict-badges">
+              <span className="badge">vs {DRAFT_MODES[review.mode].label}</span>
+              <ConfidencePill level={review.confidence} />
+              {isPB && <span className="pb-badge">NEW PERSONAL BEST</span>}
+              {best !== null && !isPB && <span className="badge">Best: {best}/100 · {recordCount} drafts</span>}
+              <RatingChip profile={profile} />
+            </div>
+            <div className="tier-summary">
+              {(['best', 'strong', 'acceptable', 'weak', 'mistake'] as const).map((t) => (
+                <span key={t} className={`tier-count tier-${t}`}>
+                  <b>{review.tierCounts[t]}</b> {t}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       ),
@@ -95,7 +96,7 @@ export function GuidedReview({
     ...moments.map((m, i) => ({
       key: `moment-${i}`,
       title: `Coaching moment ${i + 1} of ${moments.length}`,
-      render: () => <MomentsList moments={[m]} onJump={onJump} />,
+      render: () => <MomentsList moments={[m]} onJump={onJump} decisions={review.decisions} />,
     })),
     {
       key: 'dimensions',
@@ -115,21 +116,6 @@ export function GuidedReview({
               </div>
             ))}
           </div>
-        </div>
-      ),
-    },
-    {
-      key: 'next',
-      title: "Where you're headed",
-      render: () => (
-        <div className="gr-next">
-          <RatingChip profile={profile} />
-          {topGoal && (
-            <div className="gr-goal">
-              <div className="gr-goal-title">This week: {topGoal.title}</div>
-              <div className="gr-goal-detail">{topGoal.detail}</div>
-            </div>
-          )}
         </div>
       ),
     },
