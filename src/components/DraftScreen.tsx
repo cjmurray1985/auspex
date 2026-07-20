@@ -4,6 +4,8 @@ import { useDraft, PICK_SECONDS } from '../store';
 import { Card3D } from './Card3D';
 import { hoverProps, useHover } from './CardPreview';
 import { DeckPanel } from './DeckPanel';
+import { AdSlot } from './AdSlot';
+import { DEMO_ADS, EXAMPLE_ADS } from '../data/exampleAds';
 import type { RatedCard } from '../types';
 
 // Display order: WUBRG, then multicolor, colorless, lands.
@@ -121,8 +123,9 @@ export function DraftScreen() {
 
   return (
     <div className="draft-screen">
-      <div className="draft-topbar">
-        <h2 className="draft-pp">
+      <div className="draft-main">
+        <div className="draft-topbar">
+          <h2 className="draft-pp">
           <span className="pack-dots">
             {[0, 1, 2].map((i) => (
               <i
@@ -133,10 +136,9 @@ export function DraftScreen() {
           </span>
           PICK {currentPickInRound + 1}
         </h2>
-        <Timer />
-      </div>
+          <Timer />
+        </div>
 
-      <div className="draft-body">
         <motion.div
           className="pack-grid"
           key={`${currentRound}-${currentPickInRound}`}
@@ -172,8 +174,16 @@ export function DraftScreen() {
             ))}
           </AnimatePresence>
         </motion.div>
+      </div>
 
+      <div className="draft-rail">
         <DeckPanel />
+        <AdSlot
+          format="video"
+          slotId="draft-rail-video"
+          className="draft-ad"
+          {...(DEMO_ADS ? EXAMPLE_ADS.draftVideo : {})}
+        />
       </div>
     </div>
   );
