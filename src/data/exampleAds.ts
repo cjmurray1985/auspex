@@ -11,12 +11,11 @@ export const DEMO_ADS = true;
 const BASE = import.meta.env.BASE_URL;
 
 export const EXAMPLE_ADS = {
-  /** Lower-right unit during a draft. */
+  /** Lower-right unit during a draft — 300x250 medium rectangle (muted video). */
   draftVideo: {
-    imageSrc: `${BASE}ads/example-ad-video.png`,
-    href: 'https://example.com',
+    videoSrc: `${BASE}ads/big_buck_bunny.mp4`,
   },
-  /** Banner below the four-up set grid on the Academy landing. */
+  /** Banner below the four-up set grid — 728x90 leaderboard. */
   academyLeaderboard: {
     imageSrc: `${BASE}ads/example-ad-leaderboard.png`,
     href: 'https://example.com',

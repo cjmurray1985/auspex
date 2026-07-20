@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .cursor/mcp.json
+
+# Demo ad video (preview only; host real creatives on the ad network)
+public/ads/*.mp4
