@@ -223,7 +223,7 @@ export function ReviewScreen() {
           <div className="overview">
             <section>
               <h3 className="section-head">Your three biggest coaching moments</h3>
-              <MomentsList moments={review.moments.slice(0, 3)} onJump={jump} />
+              <MomentsList moments={review.moments.slice(0, 3)} onJump={jump} decisions={review.decisions} />
             </section>
             <section>
               <h3 className="section-head">Category snapshot</h3>
