@@ -3504,6 +3504,11 @@ select.db-input {
   border-color: rgba(255, 255, 255, 0.14);
   color: var(--text-dim);
 }
+.set-tile-badge-upcoming {
+  background: rgba(212, 175, 106, 0.16);
+  border-color: rgba(212, 175, 106, 0.4);
+  color: var(--gold-bright);
+}
 .set-tile-name {
   font-family: var(--font-title);
   font-size: var(--text-lg);
