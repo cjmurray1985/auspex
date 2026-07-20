@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDraft } from '../store';
+import { ManaPip } from './ManaSymbols';
 import type { RatedCard } from '../types';
 
 /**
@@ -113,7 +114,7 @@ export function DeckDetails({ open, onClose }: { open: boolean; onClose: () => v
             <div className="dd-colors">
               {COLORS.map((c) => (
                 <div key={c} className="dd-color-row">
-                  <i className={`ms ms-${c.toLowerCase()} ms-cost`} aria-hidden />
+                  <ManaPip sym={c} />
                   <span className="dd-color-name">{COLOR_NAME[c]}</span>
                   <div className="dd-color-bar">
                     <i style={{ width: pipTotal ? `${(pips[c] / pipTotal) * 100}%` : '0' }} />

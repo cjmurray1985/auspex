@@ -623,30 +623,30 @@ h3,
 .ddp-list {
   flex: 1;
   overflow-y: auto;
-  padding: 0.45rem 0.5rem;
+  padding: 0.5rem 0.55rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 5px;
 }
 
-/* MTG Arena-style decklist row: a dark "Nx" tab + two inset rectangles.
-   Fixed 32px tall. The LOWER rectangle (.ddp-cap) shows the color identity at
-   full contrast (a gradient for multicolor); the TOP rectangle (.ddp-inner),
-   inset 4px all round (so 24px tall, an 8px vertical frame), is a lighter fill
-   holding the name + mana cost. No bevels or watermarks. */
+/* Decklist as a stack of real card headers. Each row shows the top (title) band
+   of the ACTUAL, unaltered card image — the printed name, mana cost and frame,
+   no recreated fonts or glyphs. Rows overlap the one below like a fanned stack
+   of physical cards; a dark "Nx" quantity tab sits to the left, and hovering a
+   row lifts it and shows the full card via the shared hover preview. */
 .ddp-row {
   position: relative;
   cursor: pointer;
   display: flex;
-  align-items: stretch;
-  height: 32px;
-  /* Don't let the scrolling flex column shrink rows below 32px. */
+  align-items: flex-start;
+  height: 40px;
   flex: 0 0 auto;
   font-family: var(--font-title);
 }
+.ddp-row + .ddp-row {
+  margin-top: -6px; /* subtle overlap for the stacked-card look */
+}
 
-/* Left piece: dark angular quantity tab, full row height. A light curved edge
-   on its right nests against the lower rectangle; the tab paints above it. */
+/* Left piece: dark quantity tab, sat on the card's title line. */
 .ddp-qty {
   position: relative;
   z-index: 2;
@@ -654,112 +654,46 @@ h3,
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 2rem;
-  padding: 0 0.5rem;
+  min-width: 1.9rem;
+  height: 26px;
+  margin-top: 6px; /* drop onto the printed title band (see .ddp-strip-art) */
+  padding: 0 0.45rem;
   border-radius: 7px;
   background: #191b21;
   border: 2px solid #090a0d;
-  border-right: 3px solid rgba(228, 231, 238, 0.92);
   color: #eef0f4;
-  font-size: 17px;
-  line-height: 1;
-}
-
-/* Lower rectangle: full-contrast identity color (solid, or a gradient applied
-   inline for 2–3 color cards). Its 4px padding is the visible frame. */
-.ddp-cap {
-  flex: 1 1 auto;
-  min-width: 0;
-  margin-left: -8px;
-  display: flex;
-  padding: 4px;
-  border-radius: 7px;
-  background: var(--frame, #2a2f45);
-  /* Crisp black keyline like the printed border around a real card frame. */
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.42);
-  transition: filter 0.12s ease;
-}
-.ddp-row:hover .ddp-cap {
-  filter: brightness(1.08);
-}
-
-/* Top rectangle: the card's title bar — 24px, lighter fill, a thin dark pinline
-   and a whisper of printed sheen (light top / shaded bottom) plus a minor drop
-   shadow to lift it off the frame. Stays essentially flat. */
-.ddp-inner {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0 0.5rem;
-  border-radius: 3px;
-  background-color: var(--top, #1a1e30);
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(0, 0, 0, 0.06));
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.28),
-    0 1px 2px rgba(0, 0, 0, 0.28);
-}
-
-/* Flat, single-line, truncating name — 18px, fits tightly, no glow/shadow. */
-.ddp-name {
-  flex: 1 1 auto;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-family: var(--font-card);
+  font-size: 15px;
   font-weight: 700;
-  font-size: 17px;
   line-height: 1;
-  color: #17181d;
-}
-.ddp-inner .mana-cost {
-  flex: 0 0 auto;
-  font-size: 17px;
-}
-/* Flatten the mana pips — no gloss, drop-shadow or text-shadow.
-   Extra selector depth beats the global `.mana-cost .ms-cost` drop-shadow. */
-.ddp-inner .mana-cost .ms-cost {
-  filter: none;
-  text-shadow: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-/* Color identity — official MTG mana colors. --frame is the full-contrast
-   lower rectangle; --top is the lighter (official pip) content rectangle. */
-.ddp-row.c-W .ddp-cap {
-  --frame: #f5f2e1;
-  --top: #fffbd5;
+/* Window onto the top of the full card image. Overflow hides everything below
+   the title band; the next row overlaps its lower edge. */
+.ddp-strip {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: -6px;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #0b0d16;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.55),
+    0 3px 7px rgba(0, 0, 0, 0.55);
+  transition: filter 0.12s ease, transform 0.12s ease;
 }
-.ddp-row.c-U .ddp-cap {
-  --frame: #0e68ab;
-  --top: #aae0fa;
+.ddp-strip-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Full image scaled to width. The negative offset trims the black top border
+     so the printed name/mana row sits at the top of the visible band, and the
+     row's fixed height + overflow:hidden crop the rest of the card away. */
+  margin-top: -7px;
 }
-.ddp-row.c-B .ddp-cap {
-  --frame: #2c2a33;
-  --top: #cbc2bf;
-}
-.ddp-row.c-R .ddp-cap {
-  --frame: #d3202a;
-  --top: #f9aa8f;
-}
-.ddp-row.c-G .ddp-cap {
-  --frame: #136f3f;
-  --top: #9bd3ae;
-}
-.ddp-row.c-M .ddp-cap {
-  /* 2–3 color cards get the gradient frame inline; 4+ keep flat gold. Top is
-     always gold. */
-  --frame: #c9a44a;
-  --top: #e7d493;
-}
-.ddp-row.c-C .ddp-cap {
-  --frame: #8a929e;
-  --top: #c7ccd4;
-}
-.ddp-row.c-L .ddp-cap {
-  --frame: #9c7f4f;
-  --top: #d8c7a0;
+.ddp-row:hover .ddp-strip {
+  filter: brightness(1.08);
 }
 
 .ddp-empty {
@@ -770,16 +704,46 @@ h3,
   line-height: 1.5;
 }
 
-/* Mana-cost pips rendered with Andrew Gioia's Mana font. */
+/* Mana-cost row of Auspex colour discs. */
 .mana-cost {
   display: inline-flex;
   align-items: center;
-  gap: 1px;
+  gap: 2px;
   flex: 0 0 auto;
-  font-size: 0.84rem;
+  font-size: 0.9rem;
 }
-.mana-cost .ms-cost {
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+
+/* Auspex colour pip: a colour letter inside a disc. Our own visual language —
+   not WOTC's mana glyphs. The letter is a grayscale-safe (colourblind) signal. */
+.pip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 1.3em;
+  height: 1.3em;
+  border-radius: 50%;
+  font-family: var(--font-body);
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: -0.24em;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.28),
+    0 1px 1.5px rgba(0, 0, 0, 0.3);
+  user-select: none;
+}
+.pip > span {
+  font-size: 0.72em;
+  transform: translateY(0.02em);
+}
+.pip-hybrid > span {
+  font-size: 0.52em;
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.55);
+}
+.pip-off {
+  opacity: 0.3;
+  filter: grayscale(0.6);
 }
 
 .ddp-tabs {
@@ -2103,8 +2067,7 @@ select.db-input {
   font-size: 0.72rem;
   color: var(--text-dim);
 }
-.mv-pips { display: flex; gap: 0.25rem; font-size: 1.05rem; }
-.mv-pips .mv-pip-off { opacity: 0.28; filter: grayscale(0.7); }
+.mv-pips { display: flex; gap: 0.3rem; font-size: 1.05rem; }
 
 .mv-gauge { display: flex; flex-direction: column; gap: 0.3rem; align-items: center; }
 .mv-gauge-track {
@@ -2807,6 +2770,7 @@ select.db-input {
 .dd-curve-k { font-size: var(--text-xs); color: var(--text-dim); }
 .dd-colors { display: flex; flex-direction: column; gap: var(--space-2); }
 .dd-color-row { display: flex; align-items: center; gap: var(--space-3); }
+.dd-color-row .pip { font-size: 1.1rem; }
 .dd-color-name { width: 60px; font-size: var(--text-sm); }
 .dd-color-bar { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
 .dd-color-bar i { display: block; height: 100%; background: var(--accent); }
@@ -3458,17 +3422,6 @@ select.db-input {
   align-items: center;
   gap: 0.55rem;
 }
-.set-tile-symbol {
-  width: 26px;
-  height: 26px;
-  object-fit: contain;
-  filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
-  opacity: 0.95;
-}
-.set-tile-featured .set-tile-symbol {
-  width: 32px;
-  height: 32px;
-}
 .set-tile-foot {
   display: flex;
   align-items: baseline;
@@ -3739,11 +3692,6 @@ select.db-input {
   align-items: center;
   text-align: center;
   gap: 0.55rem;
-}
-.set-page-symbol {
-  width: 52px;
-  height: 52px;
-  filter: brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7));
 }
 .set-page-title {
   font-family: var(--font-title);

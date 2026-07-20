@@ -3,7 +3,7 @@ import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
 import { useDraft } from '../store';
 import { BASIC_LAND_NAMES } from '../data/scryfall';
 import { hoverProps, useHover } from './CardPreview';
-import { MiniCurve } from './ManaSymbols';
+import { MiniCurve, ManaPip } from './ManaSymbols';
 import { useDrag, type DropTarget } from './useDrag';
 import { DeckDetails } from './DeckDetails';
 import type { RatedCard } from '../types';
@@ -441,7 +441,7 @@ export function DeckBuilder() {
                 aria-pressed={colors.has(c)}
                 title={COLOR_NAMES[c]}
               >
-                <i className={`ms ms-${c.toLowerCase()} ms-cost`} aria-hidden />
+                <ManaPip sym={c} />
               </button>
             ))}
           </div>
@@ -469,7 +469,7 @@ export function DeckBuilder() {
                         aria-label={`Add one ${COLOR_NAMES[c]} land`}
                         title={`Add ${COLOR_NAMES[c]}`}
                       >
-                        <i className={`ms ms-${c.toLowerCase()} ms-cost`} aria-hidden />
+                        <ManaPip sym={c} />
                       </button>
                     ))}
                   </div>

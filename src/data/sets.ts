@@ -52,11 +52,6 @@ export function setArtUrl(set: DraftableSet): string | null {
   return cardArtUrl(set.code, set.art.cn);
 }
 
-/** Scryfall monochrome set-symbol SVG for a set. */
-export function setSymbolUrl(set: DraftableSet): string {
-  return `https://svgs.scryfall.io/sets/${set.code.toLowerCase()}.svg`;
-}
-
 /** Badge/eyebrow label: "Upcoming" for scheduled-but-not-current drafts, the
  *  draft format when live, else "Coming soon". */
 export function setBadge(set: DraftableSet): string {
