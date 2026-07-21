@@ -52,6 +52,9 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  /* Kill the grey flash iOS/Android paint over tapped controls — the app has
+     its own :active/:hover feedback. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
@@ -395,6 +398,9 @@ h3,
   flex-direction: row;
   gap: 1rem;
   height: 100vh;
+  /* dvh tracks the shrinking mobile URL bar so the pack + rail never get
+     clipped behind browser chrome. */
+  height: 100dvh;
   padding: 0.7rem 1.1rem 0.9rem;
 }
 /* Left column: top bar + pack grid. The right rail is a sibling, so it spans the
@@ -904,6 +910,7 @@ h3,
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
 }
 
 .db-toolbar {
@@ -1045,6 +1052,16 @@ select.db-input {
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.7);
   display: block;
 }
+/* Touch drag carries a *visible* ghost (there's no native setDragImage on
+   touch). Positioned via inline transform by the drag controller. */
+.db-touch-ghost {
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  opacity: 0.92;
+  will-change: transform;
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.6));
+}
 
 /* Sideboard card lifted out of the pool: dimmed + slightly shrunk while held.
    (Deck stack cards are driven by framer-motion opacity instead, since it owns
@@ -1152,6 +1169,13 @@ select.db-input {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   display: block;
   transition: box-shadow 0.14s ease;
+}
+/* Readable text name labels. The printed card name is unreadable once a card is
+   scaled to phone column/thumbnail widths, so on phones we overlay a legible
+   caption. Hidden on desktop/tablet where the printed name reads fine. */
+.db-pool-name,
+.sc-name {
+  display: none;
 }
 .db-pool-card.used {
   opacity: 0.3;
@@ -1500,6 +1524,7 @@ select.db-input {
 
 .grade-screen {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2796,6 +2821,17 @@ select.db-input {
 .dd-subtype { display: flex; justify-content: space-between; font-size: var(--text-sm); color: var(--text-dim); }
 .db-details-btn { padding: 0.5rem 1rem; }
 
+/* Compact icon buttons in the deck-builder toolbar. On desktop the details
+   button shows its text label and the filters live inline, so the filters
+   toggle and the icon-only glyphs are hidden — they only surface on mobile. */
+.db-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.db-btn-icon { display: none; }
+.db-filters-toggle { display: none; }
+
 /* Guided post-draft review (PRE-34) */
 /* Guided walkthrough owns the whole coach landing (no competing hero). */
 .review-guided {
@@ -3026,6 +3062,7 @@ select.db-input {
    ========================================================================== */
 .menu-shell {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -3877,6 +3914,349 @@ select.db-input {
   }
   .app-nav-link.is-soon {
     display: none;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE — tablet & mobile
+   The app is designed desktop-first; the draft pod and the deck builder both
+   assume a wide, fixed-height viewport. These queries reflow those two
+   interactive screens onto narrow/touch devices and tighten the surrounding
+   chrome (landing, profile, review). Breakpoints:
+     ≤1024px  tablet / small laptop  — fluid grids, slimmer rails
+     ≤640px   phone                  — single-column stacking
+     ≤400px   compact phone          — final tightening
+   ========================================================================== */
+
+/* ---------- Touch devices (any width): no hover, bigger targets ---------- */
+@media (hover: none) {
+  /* The pack "focus dim" (dim every card while one is hovered) can get stuck
+     on touch since there's no mouseleave — keep the whole pack lit. */
+  .pack-grid:hover .pack-slot {
+    opacity: 1;
+    filter: none;
+  }
+  /* Land ± controls are hover-revealed on desktop; touch has no hover, so make
+     them always available and open the sliver of art they live in. */
+  .db-stack .land-sc + .sc {
+    margin-top: -86%;
+  }
+  .land-sc .land-ctl {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .land-sc .db-mult {
+    opacity: 0;
+  }
+  /* Comfortable minimum tap targets. */
+  .land-ctl-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .db-land-add {
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
+  }
+  .db-pip {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* ---------- Tablet / small laptop ---------- */
+@media (max-width: 1024px) {
+  html {
+    font-size: 100%; /* 16px — reclaim a little density on smaller screens */
+  }
+
+  /* Draft: keep the side rail but slim it, and let the pack flow by width
+     (with vertical scroll) instead of forcing the whole pack into view. */
+  .draft-screen {
+    padding: 0.6rem 0.7rem 0.7rem;
+    gap: 0.7rem;
+  }
+  .draft-rail {
+    flex: 0 0 272px;
+  }
+  .pack-grid {
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: max-content;
+    align-content: start;
+    overflow-y: auto;
+    gap: 0.55rem 0.6rem;
+  }
+
+  /* Deck builder: shrink the pool cards so more fit per row. */
+  .db-pool-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}
+
+/* ---------- Phone ---------- */
+@media (max-width: 640px) {
+  /* ----- Draft screen: stack the pack over a compact deck rail ----- */
+  .draft-screen {
+    flex-direction: column;
+    padding: 0.5rem 0.5rem 0.6rem;
+    gap: 0.5rem;
+  }
+  .draft-topbar {
+    gap: 0.7rem;
+    padding: 0.1rem 0.2rem 0.45rem;
+  }
+  .draft-pp {
+    font-size: 0.95rem;
+  }
+  .draft-main {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .pack-grid {
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 0.45rem;
+    padding: 0.15rem;
+  }
+  /* The rail becomes a short horizontal region under the pack: the live deck
+     list (scrolls internally) fills it; the video ad is dropped to save space. */
+  .draft-rail {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 0.5rem;
+    max-height: 34dvh;
+  }
+  .deck-panel {
+    flex: 1 1 auto;
+  }
+  /* No ads on phones — every ad surface shares the `ad-slot` base class, so this
+     drops the draft-rail video and the academy leaderboard. Tablet keeps them. */
+  .ad-slot {
+    display: none;
+  }
+
+  /* ----- Deck builder: strip the toolbar to essentials, tuck the rest away ----- */
+  .db-toolbar {
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+    padding: 0.4rem 0.55rem;
+  }
+  .db-wordmark {
+    display: none;
+  }
+  .db-stat {
+    display: none; /* creature / land counts live in Deck Details */
+  }
+  /* The mana curve stays — it's core to deck building — just tightened. */
+  .db-toolbar-curve {
+    display: flex;
+    padding: 0 0.35rem 0 0.1rem;
+    margin-right: 0;
+    border-right: none;
+  }
+  .db-toolbar-curve .mini-curve {
+    height: 26px;
+  }
+  .db-count {
+    font-size: 1.1rem;
+  }
+  /* Icon-only actions on the right. */
+  .db-filters-toggle {
+    display: inline-flex;
+  }
+  .db-filters-toggle,
+  .db-details-btn {
+    padding: 0.4rem;
+    color: var(--text-dim);
+    border-color: var(--pk-edge);
+  }
+  .db-filters-toggle.active {
+    color: var(--gold-bright);
+    border-color: var(--gold);
+  }
+  .db-details-btn .db-btn-label {
+    display: none;
+  }
+  .db-details-btn .db-btn-icon {
+    display: inline-flex;
+  }
+  .db-done-btn {
+    padding: 0.45rem 1rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* Filters + search collapse behind the toolbar funnel so the sideboard grid
+     owns the whole panel; opening drops them in as a compact sheet on top. */
+  .db-pool {
+    position: relative;
+    flex-basis: 46%;
+    padding: 0.5rem 0.6rem;
+  }
+  .db-filters {
+    display: none;
+  }
+  .db-pool.filters-open .db-filters {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(212, 175, 106, 0.16);
+  }
+  .db-input {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.82rem;
+  }
+  .db-pool-grid {
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 0.85rem 0.4rem;
+    padding-top: 1rem;
+  }
+  /* Deck columns keep a tappable minimum width and scroll horizontally rather
+     than squeezing 8 columns onto a phone. Long-press a card to drag it between
+     columns; empty filler drop-columns are hidden to cut horizontal clutter. */
+  .db-curve {
+    gap: 6px;
+    padding: 0.45rem 0.5rem 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .db-col {
+    flex: 0 0 32vw;
+    min-width: 104px;
+  }
+  .db-col-filler {
+    display: none;
+  }
+
+  /* Card names are illegible at these widths, so surface a real text caption.
+     Sideboard: a two-line caption anchored to the bottom of each thumbnail. */
+  .db-pool-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    padding: 12px 4px 3px;
+    font-size: 0.58rem;
+    font-weight: 600;
+    line-height: 1.12;
+    text-align: center;
+    color: #fff;
+    overflow: hidden;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(
+      0deg,
+      rgba(6, 8, 16, 0.95) 0%,
+      rgba(6, 8, 16, 0.72) 55%,
+      rgba(6, 8, 16, 0) 100%
+    );
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95);
+    pointer-events: none;
+  }
+  /* Deck stacks: only each card's top strip peeks, so anchor a single-line
+     caption there (over the unreadable printed title band). */
+  .sc-name {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    padding: 3px 6px 8px;
+    font-size: 0.62rem;
+    font-weight: 600;
+    line-height: 1.1;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 5px 5px 0 0;
+    background: linear-gradient(
+      180deg,
+      rgba(6, 8, 16, 0.94) 0%,
+      rgba(6, 8, 16, 0.72) 60%,
+      rgba(6, 8, 16, 0) 100%
+    );
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95);
+    pointer-events: none;
+  }
+
+  /* ----- Landing / menu / profile / set page: room under the floating nav ----- */
+  .da-landing {
+    padding: 3.4rem 1rem 3rem;
+  }
+  .app-float {
+    padding: 0.6rem 0.9rem;
+  }
+  .da-hero-title {
+    margin-top: 0.4rem;
+  }
+  .profile-page,
+  .set-page {
+    padding: 3.6rem 1rem 3rem;
+  }
+  .profile-head {
+    flex-wrap: wrap;
+  }
+  .set-page-hero {
+    min-height: 220px;
+  }
+  .set-page-hero-body {
+    padding: 1.8rem 1.2rem 1.4rem;
+  }
+
+  /* ----- Review ----- */
+  .review-screen {
+    padding: 1.6rem 1rem 3rem;
+    gap: 1rem;
+  }
+  .review-hero {
+    padding: 1.2rem 1.1rem;
+    gap: 1rem;
+  }
+  .hero-letter {
+    font-size: 4.6rem;
+  }
+  .review-actions {
+    flex-direction: column;
+  }
+  .review-actions .btn-primary,
+  .review-actions .btn-ghost {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ----- Grading interstitial ----- */
+  .grade-letter {
+    font-size: 6rem;
+  }
+
+  /* Fan-content footer can crowd the stacked deck rail — drop it on phones
+     during play (it stays on the taller menu/review pages). The footer is a
+     sibling of .app-content, so match on what .app-content currently holds. */
+  .app-content:has(.draft-screen) ~ .legal-disclosure,
+  .app-content:has(.db) ~ .legal-disclosure {
+    display: none;
+  }
+}
+
+/* ---------- Compact phone ---------- */
+@media (max-width: 400px) {
+  .pack-grid {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  }
+  .db-pool-grid {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  }
+  .db-col {
+    flex: 0 0 40vw;
+  }
+  .da-hero-title {
+    font-size: 1.7rem;
   }
 }
 

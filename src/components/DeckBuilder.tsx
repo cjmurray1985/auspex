@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
 import { useDraft } from '../store';
 import { BASIC_LAND_NAMES } from '../data/scryfall';
@@ -89,12 +89,18 @@ function StackCard({
   group,
   onRemove,
   startDrag,
+  startTouchDrag,
+  dragSuppressRef,
   dragId = null,
   revealPrevArt = false,
 }: {
   group: Group;
   onRemove: (c: RatedCard) => void;
   startDrag?: (c: RatedCard) => (e: React.DragEvent) => void;
+  /** Touch/pen long-press drag starter (native HTML5 drag never fires on touch). */
+  startTouchDrag?: (c: RatedCard, e: React.PointerEvent) => void;
+  /** True right after a touch drag so the trailing synthetic click is ignored. */
+  dragSuppressRef?: React.MutableRefObject<boolean>;
   /** instanceId/id of the card currently being dragged, so the source card can
       dim while it's "lifted out" of the stack. */
   dragId?: string | null;
@@ -112,7 +118,11 @@ function StackCard({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.18, ease: 'easeOut' }}
       className={`sc${revealPrevArt ? ' peek-art' : ''}`}
-      onClick={() => onRemove(top)}
+      onClick={() => {
+        if (dragSuppressRef?.current) return; // was a drag, not a tap
+        onRemove(top);
+      }}
+      onPointerDown={(e) => startTouchDrag?.(top, e)}
       draggable={!!startDrag}
       // Native HTML5 drag-start (capture phase so it doesn't collide with
       // framer-motion's own onDragStart gesture typing on motion elements).
@@ -120,6 +130,7 @@ function StackCard({
       {...hoverProps(group.card, 'full', { glow: false })}
     >
       <img src={group.card.imageNormal} alt={group.card.name} loading="lazy" draggable={false} />
+      <span className="sc-name">{group.card.name}</span>
       {group.copies.length > 1 && <span className="db-mult">&times;{group.copies.length}</span>}
     </motion.div>
   );
@@ -196,6 +207,22 @@ function makeDragImage(card: RatedCard): HTMLElement {
   return ghost;
 }
 
+/**
+ * The touch equivalent of `makeDragImage`: a card that stays *visible* and rides
+ * under the finger (native `setDragImage` only exists for the HTML5 drag API,
+ * which never fires on touch). Removed by the drag controller on release.
+ */
+function makeTouchGhost(card: RatedCard): HTMLElement {
+  const ghost = document.createElement('div');
+  ghost.className = 'db-drag-ghost db-touch-ghost';
+  const img = document.createElement('img');
+  img.src = card.imageNormal;
+  img.draggable = false;
+  ghost.appendChild(img);
+  document.body.appendChild(ghost);
+  return ghost;
+}
+
 export function DeckBuilder() {
   const humanPool = useDraft((s) => s.humanPool);
   const deck = useDraft((s) => s.deck);
@@ -217,6 +244,12 @@ export function DeckBuilder() {
   const [colOverride, setColOverride] = useState<Record<string, number>>({});
   const [landMenuOpen, setLandMenuOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  // Mobile only: the filter/search row is collapsed behind a toolbar button so
+  // the sideboard grid gets the full panel (desktop always shows it).
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  // Set true for the lifetime of a touch drag so the trailing synthetic click
+  // (which would otherwise add/remove the card) is ignored. Reset on next press.
+  const touchDraggedRef = useRef(false);
 
   const deckIds = useMemo(() => new Set(deck.map((c) => c.instanceId ?? c.id)), [deck]);
 
@@ -321,6 +354,103 @@ export function DeckBuilder() {
     });
   };
 
+  // Apply the result of a drop (touch or otherwise) onto a `data-drop` zone.
+  // Mirrors the native onDrop handlers so both input paths behave identically.
+  const performDrop = (card: RatedCard, target: string | null | undefined) => {
+    if (!target) return;
+    const iid = card.instanceId ?? card.id;
+    const inDeck = deckIds.has(iid);
+    if (target === 'pool') {
+      if (inDeck) (isLand(card) ? moveToPool : removeSpell)(card);
+    } else if (target.startsWith('col:')) {
+      const key = Number(target.slice(4));
+      if (!inDeck) moveToDeck(card);
+      if (!isLand(card)) setColOverride((prev) => ({ ...prev, [iid]: key }));
+    } else {
+      // 'lands' or the deck at large: add to deck at its default placement.
+      if (!inDeck) moveToDeck(card);
+    }
+  };
+
+  // Touch/pen drag: native HTML5 drag never fires on touch, so reproduce it with
+  // pointer events. A short long-press "arms" the drag (so a normal swipe still
+  // scrolls the pool/columns); once armed we suppress page scroll and carry a
+  // visible ghost under the finger, lighting drop zones via `data-drop`.
+  const startTouchDrag = (card: RatedCard, e: React.PointerEvent) => {
+    if (e.pointerType !== 'touch') return; // mouse & pen keep the native drag
+    touchDraggedRef.current = false;
+    const { pointerId, clientX: startX, clientY: startY } = e;
+    let armed = false;
+    let ghost: HTMLElement | null = null;
+    let holdTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const moveGhost = (x: number, y: number) => {
+      if (ghost) {
+        ghost.style.transform = `translate(${x - DRAG_GHOST_W / 2}px, ${y - 56}px) rotate(-4deg)`;
+      }
+    };
+    // Block native scrolling only while a drag is actually armed.
+    const preventScroll = (ev: TouchEvent) => {
+      if (armed) ev.preventDefault();
+    };
+    // The drop zone under a point (hide the ghost so it isn't hit-tested).
+    const targetAt = (x: number, y: number): string | null => {
+      if (ghost) ghost.style.visibility = 'hidden';
+      const el = document.elementFromPoint(x, y);
+      if (ghost) ghost.style.visibility = '';
+      const zone = el?.closest('[data-drop]') as HTMLElement | null;
+      return zone?.dataset.drop ?? null;
+    };
+
+    const arm = () => {
+      armed = true;
+      touchDraggedRef.current = true;
+      const hover = useHover.getState();
+      hover.hide();
+      hover.freeze();
+      useDrag.getState().begin(card);
+      ghost = makeTouchGhost(card);
+      moveGhost(startX, startY);
+      navigator.vibrate?.(8);
+      document.addEventListener('touchmove', preventScroll, { passive: false });
+    };
+
+    const onMove = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      if (!armed) {
+        // Moved before the long-press landed → it's a scroll, not a drag.
+        if (Math.hypot(ev.clientX - startX, ev.clientY - startY) > 10) cleanup();
+        return;
+      }
+      moveGhost(ev.clientX, ev.clientY);
+      setOver((targetAt(ev.clientX, ev.clientY) as DropTarget) ?? null);
+    };
+    const onUp = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      if (armed) performDrop(card, targetAt(ev.clientX, ev.clientY));
+      cleanup();
+    };
+    const cleanup = () => {
+      if (holdTimer) clearTimeout(holdTimer);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      document.removeEventListener('touchmove', preventScroll);
+      ghost?.remove();
+      ghost = null;
+      if (armed) {
+        useHover.getState().unfreeze();
+        useDrag.getState().end();
+      }
+      armed = false;
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    holdTimer = setTimeout(arm, 220);
+  };
+
   const spells = deck.filter((c) => !isLand(c));
   const nonbasicLands = deck.filter(isLand);
   const totalBasics = Object.values(basics).reduce((a, b) => a + b, 0);
@@ -407,10 +537,31 @@ export function DeckBuilder() {
           {deckSize}
           <span className="db-count-max">/40</span>
         </span>
-        <button className="btn-ghost db-details-btn" onClick={() => setShowDetails(true)}>
-          Deck Details
+        <button
+          type="button"
+          className={`btn-ghost db-icon-btn db-filters-toggle${filtersOpen ? ' active' : ''}`}
+          onClick={() => setFiltersOpen((v) => !v)}
+          aria-label="Filters &amp; search"
+          aria-expanded={filtersOpen}
+          aria-pressed={filtersOpen}
+          title="Filters &amp; search"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M3 5h18l-7 8.2V19l-4 2v-7.8z" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
+          </svg>
         </button>
-        <button className="btn-primary" disabled={!canSubmit} onClick={submitDeck}>
+        <button
+          className="btn-ghost db-details-btn db-icon-btn"
+          onClick={() => setShowDetails(true)}
+          aria-label="Deck Details"
+          title="Deck Details"
+        >
+          <svg className="db-btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M5 20V10M12 20V4M19 20v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <span className="db-btn-label">Deck Details</span>
+        </button>
+        <button className="btn-primary db-done-btn" disabled={!canSubmit} onClick={submitDeck}>
           Done
         </button>
       </div>
@@ -419,7 +570,8 @@ export function DeckBuilder() {
       <div
         className={`db-pool${draggingFromDeck ? ' drag-return' : ''}${
           over === 'pool' ? ' drag-over' : ''
-        }${poolCollapsed ? ' collapsed' : ''}`}
+        }${poolCollapsed ? ' collapsed' : ''}${filtersOpen ? ' filters-open' : ''}`}
+        data-drop="pool"
         onDragOver={(e) => {
           e.preventDefault();
           setOver('pool');
@@ -545,7 +697,11 @@ export function DeckBuilder() {
                 className={`db-pool-card${
                   dragId === (card.instanceId ?? card.id) ? ' dragging' : ''
                 }`}
-                onClick={() => moveToDeck(card)}
+                onClick={() => {
+                  if (touchDraggedRef.current) return; // was a drag, not a tap
+                  moveToDeck(card);
+                }}
+                onPointerDown={(e) => startTouchDrag(card, e)}
                 draggable
                 onDragStart={startDrag(card)}
                 {...hoverProps(card, 'full', { glow: false })}
@@ -556,6 +712,7 @@ export function DeckBuilder() {
                   ))}
                 </div>
                 <img src={card.imageNormal} alt={card.name} loading="lazy" draggable={false} />
+                <span className="db-pool-name">{card.name}</span>
               </div>
             );
           })}
@@ -564,6 +721,7 @@ export function DeckBuilder() {
 
       <div
         className={`db-deck${dragging ? ' dragging' : ''}`}
+        data-drop="deck"
         onDragOver={allowDrop}
         onDrop={onDropToDeck}
       >
@@ -601,6 +759,7 @@ export function DeckBuilder() {
                 layout
                 key={col.key}
                 className={`db-col${over === `col:${col.key}` ? ' drag-target' : ''}`}
+                data-drop={`col:${col.key}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -619,6 +778,8 @@ export function DeckBuilder() {
                         group={g}
                         onRemove={removeSpell}
                         startDrag={startDrag}
+                        startTouchDrag={startTouchDrag}
+                        dragSuppressRef={touchDraggedRef}
                         dragId={dragId}
                         revealPrevArt={idx > 0 && col.groups[idx - 1].copies.length > 1}
                       />
@@ -632,6 +793,7 @@ export function DeckBuilder() {
           {/* Lands: immediately to the right of the mana curve. */}
           <div
             className={`db-col db-col-lands${over === 'lands' ? ' drag-target' : ''}`}
+            data-drop="lands"
             onDragOver={(e) => {
               e.preventDefault();
               setOver('lands');
@@ -684,6 +846,7 @@ export function DeckBuilder() {
                 layout
                 key={col.key}
                 className={`db-col${over === `col:${col.key}` ? ' drag-target' : ''}`}
+                data-drop={`col:${col.key}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -702,6 +865,8 @@ export function DeckBuilder() {
                         group={g}
                         onRemove={removeSpell}
                         startDrag={startDrag}
+                        startTouchDrag={startTouchDrag}
+                        dragSuppressRef={touchDraggedRef}
                         dragId={dragId}
                         revealPrevArt={idx > 0 && col.groups[idx - 1].copies.length > 1}
                       />
@@ -720,6 +885,7 @@ export function DeckBuilder() {
               className={`db-col db-col-filler${
                 over === `col:${rightNextKey + i}` ? ' drag-target' : ''
               }`}
+              data-drop={`col:${rightNextKey + i}`}
               key={`fill-${i}`}
               onDragOver={(e) => {
                 e.preventDefault();
