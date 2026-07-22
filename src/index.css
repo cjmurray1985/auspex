@@ -4453,6 +4453,56 @@ select.db-input {
     0 -1px 0 rgba(255, 255, 255, 0.04);
 }
 
+/* ---- Signature "scry" pick flourish (PRE-50 · Sprint 4, Pillar A) ----
+   A ripple of foresight blooms from the chosen card. Positioned at the card
+   center via inline left/top; pure CSS rings, no deps. Fully removed for
+   reduced-motion users (both here and via the JS guard in DraftScreen). */
+.scry-fx {
+  position: fixed;
+  width: 128px;
+  height: 128px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 60;
+}
+.scry-fx::before,
+.scry-fx::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(108, 198, 255, 0.7);
+  box-shadow:
+    0 0 20px rgba(77, 178, 255, 0.5),
+    inset 0 0 20px rgba(77, 178, 255, 0.28);
+  animation: scryRing 0.62s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+.scry-fx::after {
+  animation-delay: 0.11s;
+  border-color: rgba(240, 205, 138, 0.5);
+  box-shadow:
+    0 0 18px rgba(212, 175, 106, 0.4),
+    inset 0 0 16px rgba(212, 175, 106, 0.22);
+}
+@keyframes scryRing {
+  0% {
+    transform: scale(0.34);
+    opacity: 0;
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scry-fx {
+    display: none;
+  }
+}
+
 /* Featured set tile: a foil-framed portrait plate. */
 .set-tile-featured {
   box-shadow:
