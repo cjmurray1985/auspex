@@ -4260,3 +4260,213 @@ select.db-input {
   }
 }
 
+/* ============================================================================
+   Skeuomorphic grimoire primitives (PRE-48 · Sprint 4, Pillar A)
+   A tactile "Draft Observation Grimoire" surface language: aged-tome panels,
+   engraved plaques, foil hairlines, rune dividers, and glass vial meters.
+   Governed centrally so legibility (contrast, type scale) and a11y
+   (prefers-reduced-motion) are enforced in one place. Textures are pure CSS —
+   no images, no new dependencies — to hold the bundle budget.
+   ========================================================================== */
+
+/* An aged-tome page/panel: warm vignette over obsidian, foil hairline border,
+   inset emboss, and a second inner rule (the "framed page"). */
+.grimoire-panel {
+  position: relative;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 14%),
+    radial-gradient(130% 100% at 50% -12%, rgba(212, 175, 106, 0.1), transparent 55%),
+    linear-gradient(158deg, #1a2138 0%, #131a2e 55%, #0e1424 100%);
+  border: 1px solid rgba(212, 175, 106, 0.3);
+  box-shadow:
+    0 20px 48px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35),
+    inset 0 0 64px rgba(0, 0, 0, 0.32);
+  overflow: hidden;
+}
+/* The inner foil rule — the second line of a bound page. */
+.grimoire-panel::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(212, 175, 106, 0.16);
+  border-radius: calc(var(--radius) - 5px);
+  pointer-events: none;
+  z-index: 0;
+}
+.grimoire-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Engraved brushed-metal plaque — for grades, ranks, and stamped values. */
+.grimoire-plaque {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 30%),
+    linear-gradient(180deg, #2a3350 0%, #1a2138 60%, #10162a 100%);
+  border: 1px solid rgba(212, 175, 106, 0.4);
+  border-radius: var(--radius-sm);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -8px 16px rgba(0, 0, 0, 0.5),
+    0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* Letterpress engraving for display text carved into a surface. */
+.engraved {
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.55),
+    0 -1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* A rule with a centered diamond rune — divides sections like a codex. */
+.rune-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--gold);
+  font-size: var(--text-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.rune-divider::before,
+.rune-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 106, 0.4), transparent);
+}
+
+/* Glass vial gauge — a corked apothecary meter for dimension scores.
+   Markup: <div class="vial-meter"><i style="width:NN%"></i></div> */
+.vial-meter {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.3));
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+.vial-meter > i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--foresight-glow), var(--arcane-deep));
+  box-shadow: 0 0 12px rgba(77, 178, 255, 0.5);
+}
+/* Convex glass highlight across the top half of the vial. */
+.vial-meter::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 55% 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent);
+  pointer-events: none;
+}
+
+/* ---- Retrofit shared surfaces to the grimoire language ---- */
+
+/* Post-draft verdict: the opened grimoire page. */
+.verdict-card {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 14%),
+    radial-gradient(130% 120% at 50% -10%, rgba(212, 175, 106, 0.12), transparent 58%),
+    linear-gradient(158deg, #1a2138 0%, #131a2e 55%, #0e1424 100%);
+  box-shadow:
+    0 20px 48px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35),
+    inset 0 0 64px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+.verdict-card::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(212, 175, 106, 0.16);
+  border-radius: calc(var(--radius) - 5px);
+  pointer-events: none;
+}
+
+/* Review hero: an engraved grade plaque bound into the tome. */
+.review-hero {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 14%),
+    radial-gradient(120% 130% at 18% -20%, rgba(212, 175, 106, 0.12), transparent 55%),
+    linear-gradient(150deg, #1c2340 0%, #141a30 55%, #0e1424 100%);
+  box-shadow:
+    0 16px 44px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.32);
+}
+/* Seat the grade letter on its own recessed plaque. */
+.hero-left {
+  padding: 0.7rem 1rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 32%),
+    linear-gradient(180deg, #232c4a 0%, #161d34 60%, #0e1526 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -8px 16px rgba(0, 0, 0, 0.45),
+    0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Component + review rows read as inset ledger cards. */
+.component-card,
+.review-row {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+    0 6px 16px rgba(0, 0, 0, 0.28);
+}
+
+/* Dimension meters become apothecary vials. */
+.grade-bar {
+  height: 12px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.3));
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.grade-bar > div {
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--foresight-glow), var(--arcane-deep));
+  box-shadow: 0 0 12px rgba(77, 178, 255, 0.45);
+}
+
+/* Engrave the display headings that title a surface. */
+.hero-headline,
+.gr-step-title,
+.gr-verdict .gr-letter,
+.hero-letter,
+.set-tile-name,
+.da-hero-title {
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.5),
+    0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Featured set tile: a foil-framed portrait plate. */
+.set-tile-featured {
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(212, 175, 106, 0.22);
+}
+.set-tile-featured::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(212, 175, 106, 0.2);
+  border-radius: calc(var(--radius) - 4px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+
