@@ -39,6 +39,9 @@ optimize a vanity/engagement metric at the expense of this one.
 | 2026-07-15 | CI (lint+test+build) is the per-PR gate; added GitHub Actions | DevOps | Enforce quality automatically on every change (PRE-21) |
 | 2026-07-15 | Agent-first SDLC: HITL only at sprint planning + demo sign-off; sprints run autonomously; no per-PR human review | CEO / CoS | Human reasoning at key junctures; agents execute in between (PRE-22, see AGENT_FIRST_SDLC.md) |
 | 2026-07-15 | Branch protection deferred — GitHub Free blocks it on private repos; decision pending: make public or upgrade to Pro | CEO | Enforcement needs a plan/visibility change; agents self-enforce green-CI merges until then |
+| 2026-07-22 | Sprint 4 = "Signature & Substance": two pillars — (A) skeuomorphic grimoire feel + signature whimsy, (B) coaching that moves the rating | CEO | Answers the standing "generic/AI-made" brand note while pushing the North Star; approved at planning gate |
+| 2026-07-22 | Skeuomorphism ships as tokenized surface primitives, not ad-hoc styling; legibility/interactivity/a11y are non-negotiable | UI Designer / Brand Guardian | Keeps the look consistent and centrally governed (PRE-48) |
+| 2026-07-22 | Reconciled S3 work shipped ad-hoc between sprints: PRE-42/44/45/46 marked Done; PRE-1–4 onboarding boilerplate cancelled | CoS | Linear should reflect reality; keep the board trustworthy |
 
 ## Set-launch readiness checklist (run before each set drop)
 
