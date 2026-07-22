@@ -44,6 +44,34 @@ function rec(overall: number, over: Partial<DraftRecord> = {}): DraftRecord {
   };
 }
 
+describe('improvement trajectory (PRE-51)', () => {
+  it('stays calibrating until placement is complete', () => {
+    const p = computeProfile([rec(60), rec(60), rec(60)]);
+    expect(p.improvement.direction).toBe('calibrating');
+    expect(p.improvement.window).toBe(0);
+  });
+
+  it('reads rising decision quality as improving', () => {
+    // Low prior window, higher recent window.
+    const p = computeProfile([rec(50), rec(52), rec(48), rec(78), rec(82), rec(80)]);
+    expect(p.improvement.direction).toBe('improving');
+    expect(p.improvement.gradeDelta).toBeGreaterThan(0);
+    expect(p.improvement.summary).toMatch(/trending up/i);
+  });
+
+  it('reads falling decision quality as slipping', () => {
+    const p = computeProfile([rec(82), rec(80), rec(84), rec(55), rec(52), rec(50)]);
+    expect(p.improvement.direction).toBe('slipping');
+    expect(p.improvement.gradeDelta).toBeLessThan(0);
+  });
+
+  it('is outcome-free — trajectory ignores any deck result', () => {
+    // Identical decision grades → steady, regardless of anything else.
+    const p = computeProfile([rec(70), rec(70), rec(70), rec(70), rec(70), rec(70)]);
+    expect(p.improvement.direction).toBe('steady');
+  });
+});
+
 describe('Draft Rating recency weighting (DA-121)', () => {
   it('applies the documented EWMA (alpha=0.3, scale=25)', () => {
     // Steady 50s then a strong 90: rating = 0.3*(90*25) + 0.7*(50*25).

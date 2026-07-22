@@ -7,6 +7,7 @@ import type {
   DimensionTrend,
   DraftRecord,
   HabitFlag,
+  ImprovementTrend,
   MasteryLevel,
   RecurringPattern,
   WeeklyGoal,
@@ -148,6 +149,72 @@ function improvingStreak(records: DraftRecord[]): { current: number; best: numbe
     else break;
   }
   return { current, best: Math.max(best, current) };
+}
+
+/**
+ * Rolling-window improvement trajectory (PRE-51). Compares the recent window of
+ * drafts against the window before it, on two outcome-free signals: the
+ * decision-quality grade and the Draft Rating. Honest during calibration — no
+ * trajectory is claimed until a rank has been earned and there are two windows
+ * to compare.
+ */
+function improvementTrend(records: DraftRecord[], series: number[]): ImprovementTrend {
+  const grades = records.map((r) => r.overall);
+  const empty = (direction: 'calibrating', summary: string): ImprovementTrend => ({
+    window: 0,
+    gradeRecent: 0,
+    gradePrior: 0,
+    gradeDelta: 0,
+    ratingRecent: 0,
+    ratingPrior: 0,
+    ratingDelta: 0,
+    direction,
+    gradeSeries: grades.slice(-8),
+    summary,
+  });
+
+  // Need at least calibration + one comparison window before we call a trend.
+  if (records.length <= CALIBRATION_DRAFTS) {
+    return empty('calibrating', 'Finish calibration to start tracking your improvement.');
+  }
+
+  const w = Math.min(5, Math.floor(records.length / 2));
+  if (w < 1) {
+    return empty('calibrating', 'Draft again to start tracking your improvement.');
+  }
+  const recent = grades.slice(-w);
+  const prior = grades.slice(-2 * w, -w);
+  const gradeRecent = mean(recent);
+  const gradePrior = prior.length ? mean(prior) : gradeRecent;
+  const gradeDelta = gradeRecent - gradePrior;
+  const ratingRecent = mean(series.slice(-w));
+  const ratingPrior = prior.length ? mean(series.slice(-2 * w, -w)) : ratingRecent;
+  const ratingDelta = ratingRecent - ratingPrior;
+
+  const direction: 'improving' | 'steady' | 'slipping' =
+    gradeDelta >= 2 ? 'improving' : gradeDelta <= -2 ? 'slipping' : 'steady';
+
+  const rd = Math.round(ratingDelta);
+  const gd = Math.abs(gradeDelta).toFixed(1);
+  const summary =
+    direction === 'improving'
+      ? `Your decision quality is trending up — +${gd} grade over your last ${w} drafts${rd > 0 ? ` (+${rd} rating)` : ''}. Keep it going.`
+      : direction === 'slipping'
+        ? `Your decision quality has dipped ${gd} grade over your last ${w} drafts. Revisit the focus below to steady it.`
+        : 'Your decision quality is holding steady. Pick one focus below to push it up.';
+
+  return {
+    window: w,
+    gradeRecent,
+    gradePrior,
+    gradeDelta,
+    ratingRecent,
+    ratingPrior,
+    ratingDelta,
+    direction,
+    gradeSeries: grades.slice(-8),
+    summary,
+  };
 }
 
 function dimensions(withData: DraftRecord[]): DimensionTrend[] {
@@ -337,6 +404,7 @@ export function computeProfile(records: DraftRecord[]): CoachProfile {
     streak,
     bestStreak,
     dimensions: dims,
+    improvement: improvementTrend(records, series),
     colorPairs: pairs,
     recurring: patterns,
     achievements: achievements(records, pairs, bestStreak),
