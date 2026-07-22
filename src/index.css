@@ -4676,20 +4676,93 @@ select.db-input {
   }
 }
 
-/* Featured set tile: a foil-framed portrait plate. */
-.set-tile-featured {
+/* ---- Grimoire treatment on the primary entry surfaces (visible first) ----
+   These are the surfaces a player sees before ever finishing a draft: the
+   landing set tiles, the set page, and the draft/deck panels. */
+
+/* Every set tile becomes a foil-framed plate with an embossed edge. */
+.set-tile {
+  border-color: rgba(212, 175, 106, 0.3);
   box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.5),
+    0 10px 26px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.32);
+}
+.set-tile::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(212, 175, 106, 0.24);
+  border-radius: calc(var(--radius) - 5px);
+  pointer-events: none;
+  z-index: 3;
+}
+.set-tile-featured {
+  border-color: rgba(212, 175, 106, 0.55);
+  box-shadow:
+    0 22px 46px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
     inset 0 0 0 1px rgba(212, 175, 106, 0.22);
 }
-.set-tile-featured::after {
+/* Foil corner brackets — the unmistakable "bound tome" signal — on the
+   featured tile and the set-page hero. */
+.set-tile-featured::after,
+.set-page-hero::after {
+  content: '';
+  position: absolute;
+  inset: 11px;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.6;
+  background:
+    linear-gradient(var(--gold), var(--gold)) left top / 22px 2px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) left top / 2px 22px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) right top / 22px 2px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) right top / 2px 22px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) left bottom / 22px 2px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) left bottom / 2px 22px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) right bottom / 22px 2px no-repeat,
+    linear-gradient(var(--gold), var(--gold)) right bottom / 2px 22px no-repeat;
+}
+
+/* The "Your progress" panel on the set page reads as a tome page. */
+.set-page-progress {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 16%),
+    radial-gradient(120% 100% at 50% -10%, rgba(212, 175, 106, 0.09), transparent 55%),
+    linear-gradient(158deg, var(--bg-panel-2), var(--bg-panel));
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+.set-page-progress::before {
   content: '';
   position: absolute;
   inset: 7px;
-  border: 1px solid rgba(212, 175, 106, 0.2);
-  border-radius: calc(var(--radius) - 4px);
+  border: 1px solid rgba(212, 175, 106, 0.16);
+  border-radius: calc(var(--radius) - 5px);
   pointer-events: none;
-  z-index: 2;
+}
+
+/* Draft deck panel: engraved foil rule and embossed edge. */
+.deck-panel {
+  position: relative;
+  border-color: rgba(212, 175, 106, 0.3);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+.deck-panel::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(212, 175, 106, 0.14);
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 5;
 }
 
 
