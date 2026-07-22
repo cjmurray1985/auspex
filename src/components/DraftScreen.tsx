@@ -6,6 +6,7 @@ import { hoverProps, useHover } from './CardPreview';
 import { DeckPanel } from './DeckPanel';
 import { AdSlot } from './AdSlot';
 import { DEMO_ADS, EXAMPLE_ADS } from '../data/exampleAds';
+import { prefersReducedMotion } from '../fx/reducedMotion';
 import type { RatedCard } from '../types';
 
 // Display order: WUBRG, then multicolor, colorless, lands.
@@ -79,8 +80,12 @@ export function DraftScreen() {
   const currentPickInRound = useDraft((s) => s.currentPickInRound);
   const makePick = useDraft((s) => s.makePick);
   const [lastPicked, setLastPicked] = useState<string | null>(null);
+  const [scry, setScry] = useState<{ x: number; y: number; key: number } | null>(null);
   const pickingRef = useRef(false);
+  const scryTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const sortedPack = useMemo(() => sortPackForDisplay(humanPack), [humanPack]);
+
+  useEffect(() => () => clearTimeout(scryTimer.current), []);
 
   // Whenever a new pack is shown, keep the hover glow/preview frozen until the
   // cards have finished animating in — otherwise a card sliding under the
@@ -109,6 +114,21 @@ export function DraftScreen() {
     const hover = useHover.getState();
     hover.freeze();
     hover.hide();
+
+    // Signature "scry" flourish: a ripple of foresight blooms from the chosen
+    // card — the seer glimpsing the pick before it settles into the deck. Pure
+    // CSS, no deps; suppressed entirely for reduced-motion users.
+    if (!prefersReducedMotion()) {
+      const el = document.querySelector<HTMLElement>(
+        `[data-slot="${CSS.escape(card.instanceId ?? card.id)}"]`,
+      );
+      if (el) {
+        const r = el.getBoundingClientRect();
+        setScry({ x: r.left + r.width / 2, y: r.top + r.height / 2, key: Date.now() });
+        clearTimeout(scryTimer.current);
+        scryTimer.current = setTimeout(() => setScry(null), 650);
+      }
+    }
 
     // Glow fades (~0.12s), then the card flies away at the same speed as before.
     // Hover stays frozen here — the pack-change effect below unfreezes it only
@@ -167,6 +187,7 @@ export function DraftScreen() {
                     : undefined
                 }
                 style={{ perspective: 900 }}
+                data-slot={card.instanceId ?? card.id}
                 {...hoverProps(card, 'full')}
               >
                 <Card3D card={card} onClick={() => pick(card)} />
@@ -185,6 +206,15 @@ export function DraftScreen() {
           {...(DEMO_ADS ? EXAMPLE_ADS.draftVideo : {})}
         />
       </div>
+
+      {scry && (
+        <span
+          key={scry.key}
+          className="scry-fx"
+          style={{ left: scry.x, top: scry.y }}
+          aria-hidden
+        />
+      )}
     </div>
   );
 }
