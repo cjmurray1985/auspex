@@ -7,6 +7,7 @@ import { DRAFT_MODES, type DraftMode } from '../types';
 import { setMastery, type SetMastery } from '../coach/mastery';
 import { SetMasteryRing, SetMasteryModal, SetMasteryPanel } from './SetMastery';
 import { ProgressDashboard } from './review/ProgressDashboard';
+import { DraftFocusBanner } from './review/DraftFocusBanner';
 import { AdSlot } from './AdSlot';
 import { DEMO_ADS, EXAMPLE_ADS } from '../data/exampleAds';
 import { navigate, useSubPath } from '../router';
@@ -288,6 +289,7 @@ function SetLandingPage({
 }) {
   const startDraft = useDraft((s) => s.startDraft);
   const records = useDraft((s) => s.records);
+  const profile = useDraft((s) => s.profile);
   const error = useDraft((s) => s.error);
   const mastery = setMastery(records, set.code);
   const live = set.status === 'live';
@@ -323,6 +325,8 @@ function SetLandingPage({
             </button>
           </div>
         </motion.header>
+
+        <DraftFocusBanner profile={profile} />
 
         <motion.section
           className="set-page-progress"
