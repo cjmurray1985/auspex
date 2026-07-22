@@ -62,6 +62,29 @@ export function RatingChart({ history }: { history: number[] }) {
   );
 }
 
+/** Compact grade sparkline for the trajectory card (PRE-51). Grayscale-safe:
+ *  the trend is also stated in text; color only reinforces it. */
+export function GradeSparkline({ values, up }: { values: number[]; up: boolean }) {
+  if (values.length < 2) return null;
+  const W = 160;
+  const H = 40;
+  const pad = 4;
+  const n = values.length;
+  const lo = Math.min(...values);
+  const hi = Math.max(...values);
+  const span = Math.max(8, hi - lo);
+  const x = (i: number) => pad + (i / (n - 1)) * (W - pad * 2);
+  const y = (v: number) => pad + (1 - (v - lo) / span) * (H - pad * 2);
+  const path = values.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const stroke = up ? '#6ad88a' : '#e0a880';
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="spark-svg" preserveAspectRatio="none" aria-hidden>
+      <path d={path} fill="none" stroke={stroke} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={x(n - 1)} cy={y(values[n - 1])} r="3" fill={stroke} stroke="#0a0c14" strokeWidth="1" />
+    </svg>
+  );
+}
+
 function packBoundaries(points: { pickNumber: number }[]): number[] {
   const bounds: number[] = [];
   points.forEach((p, i) => {

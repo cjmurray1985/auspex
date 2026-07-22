@@ -399,6 +399,30 @@ export interface CoachRank {
   min: number;
 }
 
+/**
+ * Improvement trajectory over a rolling window — the North Star made visible:
+ * is the player's decision quality (and rating) trending up? Outcome-free.
+ */
+export type TrajectoryDirection = 'improving' | 'steady' | 'slipping' | 'calibrating';
+
+export interface ImprovementTrend {
+  /** Drafts in each compared window (0 while still calibrating). */
+  window: number;
+  /** Avg decision-quality grade, recent vs prior window. */
+  gradeRecent: number;
+  gradePrior: number;
+  gradeDelta: number;
+  /** Avg Draft Rating, recent vs prior window. */
+  ratingRecent: number;
+  ratingPrior: number;
+  ratingDelta: number;
+  direction: TrajectoryDirection;
+  /** Recent per-draft grades for a compact sparkline. */
+  gradeSeries: number[];
+  /** Plain-language, outcome-free summary sentence. */
+  summary: string;
+}
+
 export interface CoachProfile {
   drafts: number;
   rating: number;
@@ -419,6 +443,8 @@ export interface CoachProfile {
   streak: number; // current consecutive improving/quality streak
   bestStreak: number;
   dimensions: DimensionTrend[];
+  /** Rolling-window improvement trajectory (PRE-51). */
+  improvement: ImprovementTrend;
   colorPairs: ColorPairStat[];
   recurring: RecurringPattern[];
   achievements: Achievement[];

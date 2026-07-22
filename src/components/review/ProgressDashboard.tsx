@@ -1,8 +1,47 @@
 import { motion } from 'framer-motion';
-import type { CoachProfile } from '../../coach/types';
-import { RatingChart } from './charts';
+import type { CoachProfile, ImprovementTrend } from '../../coach/types';
+import { GradeSparkline, RatingChart } from './charts';
 import { NudgeBanner } from './NudgeBanner';
 import { MeterBar, scoreColor } from './ui';
+
+const TRAJECTORY_META: Record<
+  ImprovementTrend['direction'],
+  { label: string; glyph: string; cls: string }
+> = {
+  improving: { label: 'Improving', glyph: '▲', cls: 'up' },
+  steady: { label: 'Holding steady', glyph: '▬', cls: 'flat' },
+  slipping: { label: 'Slipping', glyph: '▼', cls: 'down' },
+  calibrating: { label: 'Calibrating', glyph: '◇', cls: 'flat' },
+};
+
+function TrajectoryCard({ trend }: { trend: ImprovementTrend }) {
+  const meta = TRAJECTORY_META[trend.direction];
+  const calibrating = trend.direction === 'calibrating';
+  return (
+    <div className={`trajectory-card traj-${meta.cls}`}>
+      <div className="traj-head">
+        <span className="traj-verdict">
+          <span className="traj-glyph" aria-hidden>{meta.glyph}</span> {meta.label}
+        </span>
+        {!calibrating && (
+          <span className="traj-deltas">
+            <span className="traj-delta">
+              {trend.gradeDelta >= 0 ? '+' : ''}{trend.gradeDelta.toFixed(1)} <em>grade</em>
+            </span>
+            <span className="traj-delta">
+              {trend.ratingDelta >= 0 ? '+' : ''}{Math.round(trend.ratingDelta)} <em>rating</em>
+            </span>
+            <span className="traj-window">last {trend.window} drafts</span>
+          </span>
+        )}
+      </div>
+      <div className="traj-body">
+        <p className="traj-summary">{trend.summary}</p>
+        {!calibrating && <GradeSparkline values={trend.gradeSeries} up={trend.direction !== 'slipping'} />}
+      </div>
+    </div>
+  );
+}
 
 function Delta({ value }: { value: number }) {
   const v = Math.round(value);
@@ -82,9 +121,10 @@ export function ProgressDashboard({ profile }: { profile: CoachProfile }) {
         </div>
       )}
 
-      {/* Rating progression */}
+      {/* Improvement trajectory — the North Star, made visible (PRE-51) */}
       <section>
-        <h3 className="section-head">Rating progression</h3>
+        <h3 className="section-head">Your trajectory</h3>
+        <TrajectoryCard trend={profile.improvement} />
         <div className="chart-wrap"><RatingChart history={profile.ratingHistory} /></div>
       </section>
 

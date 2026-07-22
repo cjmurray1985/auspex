@@ -4453,6 +4453,86 @@ select.db-input {
     0 -1px 0 rgba(255, 255, 255, 0.04);
 }
 
+/* ---- Improvement trajectory card (PRE-51 · Sprint 4, Pillar B) ---- */
+.trajectory-card {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--text-dim);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 20%),
+    linear-gradient(158deg, var(--bg-panel-2), var(--bg-panel));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 8px 20px rgba(0, 0, 0, 0.3);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-4);
+}
+.trajectory-card.traj-up {
+  border-left-color: #6ad88a;
+}
+.trajectory-card.traj-down {
+  border-left-color: #e0a880;
+}
+.traj-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.traj-verdict {
+  font-family: var(--font-title);
+  font-size: var(--text-lg);
+  color: var(--text);
+}
+.traj-glyph {
+  font-size: 0.9em;
+  margin-right: 0.35rem;
+}
+.traj-up .traj-glyph { color: #6ad88a; }
+.traj-down .traj-glyph { color: #e0a880; }
+.traj-flat .traj-glyph { color: var(--text-dim); }
+.traj-deltas {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text);
+  flex-wrap: wrap;
+}
+.traj-delta em {
+  color: var(--text-dim);
+  font-style: normal;
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.traj-window {
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+}
+.traj-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  flex-wrap: wrap;
+}
+.traj-summary {
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  margin: 0;
+  flex: 1;
+  min-width: 240px;
+}
+.spark-svg {
+  width: 160px;
+  height: 40px;
+  flex: 0 0 auto;
+}
+
 /* ---- Set-tailored coaching notes (PRE-43 · Sprint 4, Pillar B) ---- */
 .hero-archetype-note {
   color: var(--text-dim);
