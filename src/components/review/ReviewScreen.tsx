@@ -157,6 +157,7 @@ export function ReviewScreen() {
             {` · VS ${DRAFT_MODES[review.mode].label.toUpperCase()}`}
           </div>
           <div className="hero-headline">{review.headline}</div>
+          {review.archetypeNote && <div className="hero-archetype-note">{review.archetypeNote}</div>}
           <div className="hero-badges">
             <ConfidencePill level={review.confidence} />
             {isPB && <span className="pb-badge">NEW PERSONAL BEST</span>}

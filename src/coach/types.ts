@@ -288,6 +288,10 @@ export interface DraftReview {
   mode: DraftMode;
   headline: string;
   archetype: string;
+  /** Set-tailored one-line note on how to draft this pair (PRE-43). */
+  archetypeNote?: string;
+  /** Set-tailored format primer (speed + priorities) (PRE-43). */
+  formatPrimer?: string;
   archetypeWinRate?: number;
   categories: CategoryScore[];
   decisions: DecisionEval[];
