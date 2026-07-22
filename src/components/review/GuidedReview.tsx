@@ -75,6 +75,12 @@ export function GuidedReview({
               <div className="gr-score">{review.overall}<span>/100</span></div>
             </div>
             <p className="gr-headline">{review.headline}</p>
+            {review.archetypeNote && <p className="gr-archetype-note">{review.archetypeNote}</p>}
+            {review.formatPrimer && (
+              <p className="gr-primer">
+                <span className="gr-primer-label">Format</span> {review.formatPrimer}
+              </p>
+            )}
             <div className="gr-verdict-badges">
               <span className="badge">vs {DRAFT_MODES[review.mode].label}</span>
               <ConfidencePill level={review.confidence} />

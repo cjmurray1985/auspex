@@ -10,6 +10,7 @@ import { buildEquity, buildCommitment } from './equity';
 import { buildBranches } from './branch';
 import { analyzeDeck } from './deck';
 import { getExplainer } from './narrate';
+import { setArchetypeFor, setPrimer } from './setContent';
 
 const isLand = (c: RatedCard) => c.typeLine.includes('Land');
 
@@ -45,6 +46,7 @@ export function buildReview(
   colorRatings: ColorPairRating[],
   cardPool: RatedCard[],
   mode: DraftMode = 'human',
+  setCode?: string,
 ): DraftReview {
   const engine = getEngine(cardPool);
   const contexts = reconstructContexts(picks, engine);
@@ -72,7 +74,9 @@ export function buildReview(
     (categories.reduce((a, c) => a + c.weight, 0) || 1);
   const confidence = bandFrom(confScore);
 
-  const archetype = archetypeName(finalColors);
+  // Set-tailored archetype label + note (falls back to generic color names).
+  const setArch = setArchetypeFor(setCode, finalColors);
+  const archetype = setArch?.name ?? archetypeName(finalColors);
   const pair = canonicalPair(finalColors);
   const archetypeWinRate = colorRatings.find((r) => canonicalPair(r.colors.split('')) === pair)?.winRate;
 
@@ -89,6 +93,8 @@ export function buildReview(
     mode,
     headline,
     archetype,
+    archetypeNote: setArch?.note,
+    formatPrimer: setPrimer(setCode),
     archetypeWinRate,
     categories,
     decisions,

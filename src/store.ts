@@ -373,7 +373,7 @@ export const useDraft = create<DraftStore>((set, get) => ({
     // Small theatrical delay before the reveal
     setTimeout(() => {
       const totalBasics = Object.values(s.basics).reduce((a, b) => a + b, 0);
-      const review = buildReview(s.deck, totalBasics, s.picks, s.colorRatings, s.cardPool, s.mode);
+      const review = buildReview(s.deck, totalBasics, s.picks, s.colorRatings, s.cardPool, s.mode, s.selectedSet.code);
       // Achievements are about what you DRAFTED (the full pool), not just the
       // 40-card build, so evaluate against humanPool.
       const earned = evaluateSetAchievements(s.selectedSet.code, s.humanPool, review.overall);
